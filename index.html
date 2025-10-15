@@ -16,7 +16,6 @@
       --radius: 12px;
       --container: 1100px;
     }
-
     *{box-sizing: border-box}
     html,body{height:100%}
     body{
@@ -29,7 +28,6 @@
       line-height:1.45;
       -webkit-text-size-adjust:100%;
     }
-
     header{
       max-width: var(--container);
       margin: 28px auto 40px;
@@ -39,34 +37,23 @@
       gap:20px;
       padding: 12px 20px;
     }
-
     .profile{
       display:flex;
       gap:16px;
       align-items:center;
     }
-
     .profile img{
       width:64px;height:64px;border-radius:12px;object-fit:cover;box-shadow:0 6px 18px rgba(0,0,0,0.08);
     }
-
-    .profile .name{
-      display:flex;flex-direction:column;line-height:1;
-    }
-
+    .profile .name{display:flex;flex-direction:column;line-height:1;}
     .profile h1{margin:0;font-size:20px;font-weight:700;letter-spacing:0.2px}
     .profile p{margin:4px 0 0;color:var(--muted);font-size:13px}
-
     .socials{display:flex;gap:12px;align-items:center}
     .socials a{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:transparent;border:1px solid rgba(0,0,0,0.04);text-decoration:none;transition:transform .18s ease, background .18s ease}
     .socials a:hover{transform:translateY(-3px);background:rgba(0,0,0,0.03)}
     .socials svg{width:18px;height:18px;display:block}
-
     main{max-width:var(--container);margin:0 auto;padding:0 20px 80px;display:flex;flex-direction:column;gap:56px}
-
-    /* Projects grid */
     .projects{display:grid;grid-template-columns:repeat(2,1fr);gap:36px}
-
     .project{
       background:var(--card);
       border-radius:var(--radius);
@@ -77,34 +64,25 @@
       cursor:pointer;
       display:flex;flex-direction:column;
     }
-
     .project:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(20,18,16,0.08)}
-
     .project-media{width:100%;background:#faf8f6}
     .project-media img{display:block;width:100%;height:auto;object-fit:cover}
-
     .project-body{padding:18px 20px 26px}
     .project-description{color:var(--muted);font-size:14px;margin:0}
-
     .project{opacity:0;transform:translateY(12px);animation:fadeUp .5s forwards}
     .project:nth-child(1){animation-delay:.05s}
     .project:nth-child(2){animation-delay:.12s}
-
     @keyframes fadeUp{to{opacity:1;transform:none}}
-
-    /* responsive */
     @media (max-width:900px){
       .projects{grid-template-columns:1fr}
       header{padding:8px 20px}
       .profile img{width:56px;height:56px}
     }
-
     @media (max-width:480px){
       header{flex-direction:column;align-items:flex-start;gap:12px}
       .socials{margin-top:6px}
       main{padding:0 16px 60px}
     }
-
   </style>
 </head>
 <body>
@@ -166,37 +144,67 @@
   </main>
 
   <script>
+    /**
+     * При клике:
+     * - на мобильных (<=900px) пытаемся проверить, доступна ли data-link (HEAD).
+     *   - если доступна -> перейти на неё;
+     *   - если нет или произошла ошибка -> открыть data-full (изображение) в новой вкладке.
+     * - на десктопе: разворачиваем карточку и подгружаем full image (как раньше).
+     */
     function toggleProject(id){
       const el = document.getElementById(id);
       const link = el.getAttribute('data-link');
-      // on small devices navigate directly to the case
-      if (window.innerWidth <= 900 && link) {
-        window.location.href = link;
+      const img = el.querySelector('.project-media img');
+      const full = img ? img.getAttribute('data-full') : null;
+
+      // мобильное поведение: сначала попытка перейти на data-link (если он есть),
+      // но если он недоступен — откроем full image чтобы не было 404.
+      if (window.innerWidth <= 900) {
+        if (link) {
+          // проверяем существование ресурса HEAD-запросом
+          fetch(link, { method: 'HEAD' })
+            .then(resp => {
+              if (resp.ok) {
+                window.location.href = link;
+              } else {
+                // fallback to full image
+                if (full) window.open(full, '_self');
+                else window.location.href = link; // последний шанс — всё равно перейти
+              }
+            })
+            .catch(() => {
+              // если запрос упал (CORS/сеть) — fallback
+              if (full) window.open(full, '_self');
+              else if (link) window.location.href = link;
+            });
+        } else if (full) {
+          // если data-link нет — просто открыть изображение
+          window.open(full, '_self');
+        }
         return;
       }
-      // desktop: toggle expanded and swap to full image if available
+
+      // Десктоп: поведение — расширить карточку и подгрузить full изображение
       const expanded = el.classList.toggle('expanded');
       el.setAttribute('aria-expanded', expanded ? 'true' : 'false');
 
-      const img = el.querySelector('.project-media img');
-      const full = img.getAttribute('data-full');
-      if(full){
-        if(expanded){
+      if (full) {
+        if (expanded) {
           const tmp = new Image(); tmp.src = full;
-          tmp.onload = ()=> img.src = full;
+          tmp.onload = () => img.src = full;
         } else {
           const thumb = img.getAttribute('src-thumb') || img.getAttribute('src');
-          if(img.getAttribute('src-thumb')) img.src = img.getAttribute('src-thumb');
+          if (img.getAttribute('src-thumb')) img.src = img.getAttribute('src-thumb');
         }
       }
     }
 
-    // store original src as data-src-thumb to be able to revert
+    // Сохраняем исходный src в data-src-thumb
     document.querySelectorAll('.project-media img').forEach(i=>{
       if(!i.getAttribute('src-thumb')) i.setAttribute('src-thumb', i.getAttribute('src'));
     });
 
-    // keyboard accessibility (Enter / Space to toggle or open)
+    // Доступность: Enter / Space
     document.querySelectorAll('.project[role="button"]').forEach(el=>{
       el.addEventListener('keydown', e=>{
         if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleProject(el.id); }
@@ -205,4 +213,3 @@
   </script>
 </body>
 </html>
-
