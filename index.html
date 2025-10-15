@@ -1,119 +1,235 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Портфолио Лёши Сергеева</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Портфолио — Алексей Сергеев</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #f8f5f0;
-      color: #333;
-      overflow-x: hidden;
+    :root{
+      --bg: #f8f5f0;
+      --card: #ffffff;
+      --text: #222;
+      --muted: #6f6b66;
+      --accent: #caa97f; /* кофейный акцент */
+      --radius: 12px;
+      --container: 1100px;
     }
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px;
-      flex-wrap: wrap;
+    *{box-sizing: border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg,var(--bg) 0%, #fbfaf8 100%);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.45;
+      -webkit-text-size-adjust:100%;
     }
 
-    .profile {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    header{
+      max-width: var(--container);
+      margin: 28px auto 40px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+      padding: 12px 20px;
     }
 
-    .profile img {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      object-fit: cover;
+    .profile{
+      display:flex;
+      gap:16px;
+      align-items:center;
     }
 
-    .socials a {
-      margin-left: 16px;
-      text-decoration: none;
-      color: #333;
-      font-size: 22px;
-      transition: color 0.3s;
+    .profile img{
+      width:64px;height:64px;border-radius:12px;object-fit:cover;box-shadow:0 6px 18px rgba(0,0,0,0.08);
     }
 
-    .socials a:hover {
-      color: #888;
+    .profile .name{
+      display:flex;flex-direction:column;line-height:1;
     }
 
-    .project {
-      position: relative;
-      width: 100%;
-      max-width: 1200px;
-      margin: 0 auto;
-      cursor: pointer;
-      transition: all 0.6s ease;
-      overflow: hidden;
+    .profile h1{margin:0;font-size:20px;font-weight:700;letter-spacing:0.2px}
+    .profile p{margin:4px 0 0;color:var(--muted);font-size:13px}
+
+    .socials{display:flex;gap:12px;align-items:center}
+    .socials a{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:transparent;border:1px solid rgba(0,0,0,0.04);text-decoration:none;transition:transform .18s ease, background .18s ease}
+    .socials a:hover{transform:translateY(-3px);background:rgba(0,0,0,0.03)}
+    .socials svg{width:18px;height:18px;display:block}
+
+    main{max-width:var(--container);margin:0 auto;padding:0 20px 80px;display:flex;flex-direction:column;gap:56px}
+
+    /* Projects grid */
+    .projects{display:grid;grid-template-columns:repeat(2,1fr);gap:36px}
+
+    .project{
+      background:var(--card);
+      border-radius:var(--radius);
+      overflow:hidden;
+      position:relative;
+      box-shadow:0 6px 30px rgba(20,18,16,0.06);
+      transition:transform .28s ease, box-shadow .28s ease;
+      cursor:pointer;
+      display:flex;flex-direction:column;
     }
 
-    .project img {
-      display: block;
-      width: 100%;
-      height: auto;
-      object-fit: contain;
-      transition: transform 0.5s ease, filter 0.4s ease;
+    .project:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(20,18,16,0.08)}
+
+    .project-media{width:100%;background:#faf8f6}
+    .project-media img{display:block;width:100%;height:auto;object-fit:cover}
+
+    .project-body{padding:18px 20px 26px}
+    .project-title{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .project-title h3{margin:0;font-size:18px}
+    .project-role{font-size:13px;color:var(--muted)}
+
+    .project-description{margin-top:10px;color:var(--muted);font-size:14px}
+
+    .project-details{overflow:hidden;max-height:0;transition:max-height .5s cubic-bezier(.2,.9,.2,1);padding:0 20px}
+    .project.expanded .project-details{max-height:500px;padding-top:18px;padding-bottom:22px}
+
+    .cta{display:inline-block;padding:8px 12px;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;font-size:13px}
+
+    /* subtle entrance animation */
+    .project{opacity:0;transform:translateY(12px);animation:fadeUp .5s forwards}
+    .project:nth-child(1){animation-delay:.05s}
+    .project:nth-child(2){animation-delay:.12s}
+
+    @keyframes fadeUp{to{opacity:1;transform:none}}
+
+    /* responsive */
+    @media (max-width:900px){
+      .projects{grid-template-columns:1fr}
+      header{padding:8px 20px}
+      .profile img{width:56px;height:56px}
     }
 
-    .project:hover img {
-      transform: scale(1.02);
-      filter: brightness(0.9);
+    @media (max-width:480px){
+      header{flex-direction:column;align-items:flex-start;gap:12px}
+      .socials{margin-top:6px}
+      main{padding:0 16px 60px}
     }
 
-    .project.expanded img {
-      max-height: none;
-    }
-
-    @media (max-width: 768px) {
-      header {
-        flex-direction: column;
-        text-align: center;
-      }
-
-      .socials a {
-        margin: 0 8px;
-      }
-    }
   </style>
-  <script>
-    function toggleProject(id, shortSrc, longSrc) {
-      const project = document.getElementById(id);
-      const img = project.querySelector('img');
-      const expanded = project.classList.toggle('expanded');
-      img.src = expanded ? longSrc : shortSrc;
-    }
-  </script>
 </head>
 <body>
   <header>
     <div class="profile">
-      <img src="myphoto.jpg" alt="Моя фотография" />
-      <span>Портфолио Лёши Сергеева</span>
+      <img src="myphoto.jpg" alt="Алексей Сергeев" loading="lazy"/>
+      <div class="name">
+        <h1>Алексей Сергeев</h1>
+        <p>Графический дизайнер • Брендинг • Веб</p>
+      </div>
     </div>
-    <div class="socials">
-      <a href="https://instagram.com" target="_blank">📸</a>
-      <a href="https://behance.net" target="_blank">🎨</a>
-      <a href="https://linkedin.com" target="_blank">💼</a>
-    </div>
+
+    <nav class="socials" aria-label="Социальные сети">
+      <a href="https://instagram.com" target="_blank" title="Instagram" rel="noopener noreferrer">
+        <!-- Instagram (simple outline) -->
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.2"/>
+          <circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.2"/>
+          <circle cx="17.2" cy="6.8" r="0.6" fill="currentColor"/>
+        </svg>
+      </a>
+
+      <a href="https://behance.net" target="_blank" title="Behance" rel="noopener noreferrer">
+        <!-- Behance simple mark -->
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M6 9.5h3.2c1.2 0 2-.6 2-1.7 0-1.1-.8-1.6-2-1.6H6V9.5zM6 12.8h3.6c2 0 3.4-1.1 3.4-3.3 0-2.1-1.6-3.3-3.6-3.3H6v6.6z" fill="currentColor"/>
+          <path d="M16.5 9.6c1 .1 1.9.7 1.9 1.8 0 1.2-.9 1.9-2.2 1.9h-2v-3.7h2.3zM19 12.4c1.4 0 2.5 1 2.5 2.7v1.1H19c-2.7 0-3.9-1.2-3.9-3.2 0-2.1 1.8-3.1 3.9-3.1h2z" fill="currentColor"/>
+        </svg>
+      </a>
+
+      <a href="https://linkedin.com" target="_blank" title="LinkedIn" rel="noopener noreferrer">
+        <!-- LinkedIn simple -->
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.2" fill="none"/>
+          <path d="M8.2 10.5v6H5.6v-6h2.6zM6.9 8.8a1.2 1.2 0 1 0 0-2.4 1.2 1.2 0 0 0 0 2.4zM13.1 11.6c1.1 0 2.1.6 2.1 1.9v3.1h-2.6v-2.8c0-.7-.3-1.1-1-1.1-.5 0-.8.3-.9.6-.1.2-.1.5-.1.8v2.5H9.6v-6h2.4v.8c.4-.6 1.3-.9 1.1-.9z" fill="currentColor"/>
+        </svg>
+      </a>
+    </nav>
   </header>
 
   <main>
-    <div class="project" id="proj1" onclick="toggleProject('proj1', 'project1-thumb.jpg', 'project1-full.png')">
-      <img src="project1-thumb.jpg" alt="Проект 1" />
-    </div>
+    <section class="projects" aria-label="Проекты">
 
-    <div class="project" id="proj2" onclick="toggleProject('proj2', 'project2-thumb.jpg', 'project2-full.jpg')">
-      <img src="project2-thumb.jpg" alt="Проект 2" />
-    </div>
+      <!-- Project 1 -->
+      <article class="project" id="proj1" onclick="toggleProject('proj1')" tabindex="0" role="button" aria-expanded="false">
+        <div class="project-media">
+          <img src="project1-thumb.jpg" data-full="project1-full.png" alt="Проект — Фирменный стиль кофейни" loading="lazy" />
+        </div>
+        <div class="project-body">
+          <div class="project-title">
+            <h3>Фирменный стиль для кофейни</h3>
+            <div class="project-role">Брендинг • айдентика</div>
+          </div>
+          <div class="project-description">Лаконичная айдентика и упаковка для локальной кофе-точки. Работа над логотипом, палитрой и визуальным языком.</div>
+        </div>
+        <div class="project-details">
+          <p style="color:var(--muted);margin:0 0 12px">В проекте были разработаны логотип, система модульной сетки для пакетов и меню, а также шаблоны для соцсетей. В результатах — +18% узнаваемости локального бренда в первые 3 месяца.</p>
+          <a class="cta" href="#" onclick="event.stopPropagation();alert('Открыть кейс — placeholder');return false">Подробнее</a>
+        </div>
+      </article>
+
+      <!-- Project 2 -->
+      <article class="project" id="proj2" onclick="toggleProject('proj2')" tabindex="0" role="button" aria-expanded="false">
+        <div class="project-media">
+          <img src="project2-thumb.jpg" data-full="project2-full.jpg" alt="Проект — Презентация для кафе" loading="lazy" />
+        </div>
+        <div class="project-body">
+          <div class="project-title">
+            <h3>Презентация для кофейни</h3>
+            <div class="project-role">Дизайн презентации • визуальные слайды</div>
+          </div>
+          <div class="project-description">Серия информативных слайдов в фирменном стиле — структура, типографика и визуальные метафоры для инвесторов.</div>
+        </div>
+        <div class="project-details">
+          <p style="color:var(--muted);margin:0 0 12px">Подготовлены 12 слайдов, готовых к печати и показу на экране. Фокус на читабельности и быстром восприятии ключевых идей.</p>
+          <a class="cta" href="#" onclick="event.stopPropagation();alert('Открыть кейс — placeholder');return false">Подробнее</a>
+        </div>
+      </article>
+
+    </section>
   </main>
+
+  <script>
+    // Toggle expand and swap to full image if available
+    function toggleProject(id){
+      const el = document.getElementById(id);
+      const expanded = el.classList.toggle('expanded');
+      el.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+
+      const img = el.querySelector('.project-media img');
+      const full = img.getAttribute('data-full');
+      if(full){
+        // preload and swap
+        if(expanded){
+          const tmp = new Image(); tmp.src = full;
+          tmp.onload = ()=> img.src = full;
+        }else{
+          // revert to thumb — assume thumb is first in src attribute history or you could store data-thumb
+          const thumb = img.getAttribute('src-thumb') || img.getAttribute('src');
+          if(img.getAttribute('src-thumb')) img.src = img.getAttribute('src-thumb');
+        }
+      }
+    }
+
+    // store original src as data-src-thumb to be able to revert
+    document.querySelectorAll('.project-media img').forEach(i=>{
+      if(!i.getAttribute('src-thumb')) i.setAttribute('src-thumb', i.getAttribute('src'));
+    });
+
+    // keyboard accessibility (Enter / Space to toggle)
+    document.querySelectorAll('.project[role="button"]').forEach(el=>{
+      el.addEventListener('keydown', e=>{
+        if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleProject(el.id); }
+      });
+    });
+  </script>
 </body>
 </html>
