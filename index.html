@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Портфолио Лёши Сергеева</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f8f5f0;
+      color: #333;
+      overflow-x: hidden;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .profile img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .socials a {
+      margin-left: 16px;
+      text-decoration: none;
+      color: #333;
+      font-size: 22px;
+      transition: color 0.3s;
+    }
+
+    .socials a:hover {
+      color: #888;
+    }
+
+    .project {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.8s ease;
+    }
+
+    .project.expanded {
+      height: 200vh;
+    }
+
+    .project img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s ease, filter 0.4s ease;
+    }
+
+    .project:hover img {
+      transform: scale(1.02);
+      filter: brightness(0.8);
+    }
+
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+      }
+      .socials a {
+        margin-left: 10px;
+      }
+    }
+  </style>
+  <script>
+    function toggleProject(id, shortSrc, longSrc) {
+      const project = document.getElementById(id);
+      const img = project.querySelector('img');
+      const expanded = project.classList.toggle('expanded');
+      img.src = expanded ? longSrc : shortSrc;
+    }
+  </script>
+</head>
+<body>
+  <header>
+    <div class="profile">
+      <img src="myphoto.jpg" alt="Моя фотография" />
+      <span>Портфолио Лёши Сергеева</span>
+    </div>
+    <div class="socials">
+      <a href="https://instagram.com" target="_blank">📸</a>
+      <a href="https://behance.net" target="_blank">🎨</a>
+      <a href="https://linkedin.com" target="_blank">💼</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="project" id="proj1" onclick="toggleProject('proj1', 'project1-thumb.jpg', 'project1-full.jpg')">
+      <img src="project1-thumb.jpg" alt="Проект 1" />
+    </div>
+
+    <div class="project" id="proj2" onclick="toggleProject('proj2', 'project2-thumb.jpg', 'project2-full.jpg')">
+      <img src="project2-thumb.jpg" alt="Проект 2" />
+    </div>
+
+    <div class="project" id="proj3" onclick="toggleProject('proj3', 'project3-thumb.jpg', 'project3-full.jpg')">
+      <img src="project3-thumb.jpg" alt="Проект 3" />
+    </div>
+  </main>
+</body>
+</html>
