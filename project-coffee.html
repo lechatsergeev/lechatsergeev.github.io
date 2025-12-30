@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Кейс — Будем Знакомы</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Caveat&family=Seymour+One&display=swap" rel="stylesheet">
+  <style>
+   :root{
+     --bg: #ffffff;
+     --text: #222;
+     --muted: #6f6b66;
+     --accent: #FF5E3A;
+     --container: 740px;
+     --radius: 16px;
+     --left-offset: 8vw;
+
+     /* plaque colors */
+     --pink-plaque: #fff6f8;              /* очень бледный розовый фон */
+     --pink-plaque-shadow: rgba(255,150,170,0.06); /* размытая тень в тон */
+     --btn-gray: #e6e6e6;
+     --btn-gray-dark: #d3d3d3;
+     --btn-ico: #555;
+   }
+   *{box-sizing: border-box}
+
+   html,body{height:100%}
+   body{
+     margin:0;
+     font-family: 'Inter', system-ui, sans-serif;
+     background: var(--bg);
+     color:var(--text);
+     line-height: 1.45; /* читаемый межстрочный интервал внутри абзацев */
+     -webkit-font-smoothing:antialiased;
+     overflow-x: hidden;
+   }
+
+   /* --- HEADER --- */
+   header {
+     width: 100%;
+     padding: 32px 20px 24px var(--left-offset);
+   }
+   .back-link {
+     text-decoration: none;
+     color: var(--muted);
+     font-size: 14px;
+     display: inline-flex;
+     align-items: center;
+     gap: 6px;
+     transition: color 0.2s;
+     font-weight: 500;
+   }
+   .back-link:hover { color: var(--text); }
+
+   /* --- ARTICLE --- */
+   article {
+     max-width: var(--container);
+     margin-left: var(--left-offset);
+     margin-right: 20px;
+     padding-bottom: 100px;
+   }
+
+   /* ТИПОГРАФИКА */
+   h1 {
+     font-family: 'Inter', sans-serif;
+     font-size: 36px;
+     line-height: 1.1;
+     font-weight: 800;
+     margin: 0 0 24px 0;
+     letter-spacing: -0.02em;
+   }
+   h2 {
+     font-family: 'Inter', sans-serif;
+     font-size: 26px;
+     margin: 48px 0 20px 0;
+     font-weight: 700;
+     letter-spacing: -0.01em;
+   }
+
+   /* Параграфы: убрать вертикальные отступы между абзацами, восстановить "красную строку" */
+   p {
+     margin: 0;                 /* убираем внешние отступы между абзацами */
+     font-size: 18px;
+     color: #333;
+     text-indent: 1.5em;       /* "красная строка" — первая строка абзаца */
+     line-height: 1.45;        /* межстрочный интервал внутри абзаца (нормальный) */
+     margin-bottom: 0;         /* на всякий случай */
+   }
+
+   /* Если нужно исключение (не делать отступ у первого абзаца после заголовка),
+      можно раскомментировать следующее правило:
+   article > p:first-of-type { text-indent: 0; }
+   */
+
+   /* Нейтральные плашки: бледно-розовый фон и очень размытая тень вокруг */
+   .highlight-box {
+     margin: 40px 0;
+     padding: 28px 32px;
+     font-weight: 500;
+     font-size: 18px;
+     line-height: 1.5;
+     position: relative;
+
+     background: var(--pink-plaque);
+     border-radius: 12px;
+
+     border: none;
+     /* очень размытую тень вокруг всей плашки */
+     box-shadow: 0 40px 80px var(--pink-plaque-shadow);
+     color: var(--text);
+   }
+   .highlight-box::before, .highlight-box::after { display: none; }
+
+   ol { padding-left: 20px; margin: 0 0 32px 0; }
+   ol li { margin: 0 0 12px 0; font-size: 18px; }
+
+   /* --- СЛАЙДЕР / КАРТИНКИ --- */
+   .slider-container, .single-image-container {
+     margin-top: 40px;
+     margin-bottom: 40px;
+     width: 100%;
+   }
+
+   .slider-wrapper, .single-image-wrapper {
+     width: 100%;
+     border-radius: var(--radius);
+     overflow: visible; /* позволяем картинке выходить за пределы, если нужно */
+     position: relative;
+
+     /* Плашка под фотографиями убрана: прозрачный фон и без тени */
+     background: transparent;
+     box-shadow: none;
+
+     display: flex;
+     justify-content: center;
+     align-items: center;
+   }
+
+   /* Если вы хотите, чтобы изображение обрезалось по радиусу контейнера — вернуть overflow: hidden */
+
+   .slider-track { display: flex; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+   .slide { min-width: 100%; display: flex; justify-content: center; align-items: center; }
+
+   /* Ограничение высоты изображений */
+   .slide img, .single-image-wrapper img {
+     width: auto;
+     max-width: 100%;
+     height: auto;
+     max-height: 80vh;
+     object-fit: contain;
+     display: block;
+     margin: 0 auto;
+     background: transparent;
+   }
+
+   /* Кнопки слайдера — спокойный серый */
+   .slider-btn {
+     position: absolute;
+     top: 50%;
+     transform: translateY(-50%);
+     background: var(--btn-gray);
+     border: none;
+     width: 44px;
+     height: 44px;
+     border-radius: 50%;
+     cursor: pointer;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+     z-index: 2;
+     opacity: 0;
+     transition: all 0.18s ease;
+     color: var(--btn-ico);
+     font-size: 20px;
+     line-height: 1;
+   }
+
+   .slider-wrapper:hover .slider-btn { opacity: 1; }
+   .slider-btn:hover {
+     transform: translateY(-50%) scale(1.06);
+     background: var(--btn-gray-dark);
+     box-shadow: 0 10px 26px rgba(0,0,0,0.06);
+   }
+
+   .slider-btn.prev { left: 20px; }
+   .slider-btn.next { right: 20px; }
+
+   .caption {
+     text-align: left;
+     font-size: 14px;
+     color: var(--muted);
+     margin-top: 14px;
+     font-family: 'Inter', sans-serif;
+     font-weight: 400;
+     opacity: 0.8;
+   }
+
+   /* --- МОБИЛЬНАЯ ВЕРСИЯ --- */
+   @media (max-width: 768px) {
+     :root { --left-offset: 0px; }
+     header { padding: 24px 20px; }
+     article {
+       padding: 0 20px 60px 20px;
+       margin-right: 0;
+     }
+     h1 { font-size: 28px; }
+     h2 { font-size: 22px; margin-top: 36px;}
+     p, li, .highlight-box { font-size: 16px; }
+
+     .slider-btn { opacity: 1; width: 36px; height: 36px; font-size: 18px; }
+     .highlight-box { padding: 20px; box-shadow: 0 30px 60px var(--pink-plaque-shadow); }
+   }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="index.html" class="back-link">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-top:-2px"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Назад к портфолио
+    </a>
+  </header>
+  <article>
+    <h1>Продающий сайт для кофейни «Будем Знакомы»</h1>
+    <p>Когда я начал работать с кофейней «Будем Знакомы», у них уже была своя обжарка. Кофе жарили под потребности двух точек в Санкт-Петербурге и параллельно продавали пачки по 200 грамм. Формально продукт был. Фактически — не продавался.</p>
+    <p>За два года большая часть упаковок так и не ушла гостям. Когда зерно залеживалось, его просто открывали и заваривали в кофейне, чтобы не выбрасывать. Продажи «на вынос» не работали, но причины никто толком не формулировал.</p>
+
+    <div class="highlight-box">
+      Я увидел в этом не проблему продукта, а проблему подачи.
+    </div>
+
+    <div class="single-image-container">
+      <div class="single-image-wrapper">
+        <img src="coffee-shelf-1.jpg" alt="Полка в кофейне">
+      </div>
+      <div class="caption">Полка в кофейне: зерно есть, продаж нет</div>
+    </div>
+
+    <h2>Сначала я решил проверить визуал в офлайне</h2>
+    <p>Я не стал сразу делать сайт. Онлайн-продажи — это всегда продолжение офлайна, и если визуал не работает в точке, в интернете он тоже не заработает. Поэтому первым шагом я занялся печатными материалами: меню, ценниками, карточками сортов, мелкими носителями.</p>
+
+    <div class="highlight-box">
+      Моя задача была простой — сделать так, чтобы информацию было легко читать и быстро понимать.
+    </div>
+
+    <p>Я выбрал связку <b>Gibbs Sans</b> для заголовков и <b>PT Sans</b> для основного текста. Настроил иерархию, интервалы, размеры. Цвета оставил умеренно-яркими — они не спорили с интерьером и не ломали привычную атмосферу кофейни.</p>
+    <p>Материалы стали удобнее. Гости быстрее ориентировались, персоналу стало проще работать. Но при этом я понял важную вещь: визуал решает утилитарные задачи, но не создаёт образ бренда. Он был аккуратный, корректный — и абсолютно безликий.</p>
+
+    <div class="slider-container">
+      <div class="slider-wrapper" id="slider2">
+        <div class="slider-track">
+          <div class="slide"><img src="coffee-menu-1.png" alt="Ценники"></div>
+          <div class="slide"><img src="coffee-menu-2.png" alt="Меню"></div>
+        </div>
+        <button class="slider-btn prev" onclick="moveSlide('slider2', -1)">&#10094;</button>
+        <button class="slider-btn next" onclick="moveSlide('slider2', 1)">&#10095;</button>
+      </div>
+      <div class="caption">Ценники — минимум шума, максимум информации. Меню — акцент на читаемость и иерархию</div>
+    </div>
+
+    <h2>Почему я не стал сразу менять дизайн снова</h2>
+    <p>После печатных материалов прошло почти три месяца, прежде чем я начал работу над сайтом. Это было не дизайнерское решение, а реальное ограничение.</p>
+    <p>В этот период в кофейне числился другой SMM-специалист. Он не развивал канал, но формально занимал роль. Я не хотел давить, навязываться и параллельно запускать проект, который всё равно некому поддерживать.</p>
+    <p>Я ждал момента, когда смогу отвечать за весь цикл — от визуала до контента. Когда этот момент настал, я вернулся к идее сайта.</p>
+
+    <h2>Я решил делать дизайн сразу в коде, а не в макетах</h2>
+    <p>Перепечатывать все материалы ради нового визуала — дорого и бессмысленно. Делать абстрактные макеты сайта без реального запуска — тоже.</p>
+
+    <p>Поэтому вторую итерацию дизайна я решил делать сразу на живом продукте — на сайте.</p>
+    <p>Я выбрал более характерную типографику: <span style="font-family: 'Seymour One', sans-serif;">Seymour One</span> — широкий, редкий шрифт для заголовков, который сразу задаёт характер. В пару к нему — рукописный <span style="font-family: 'Caveat', cursive; font-size: 1.2em;">Caveat</span> для акцентов и маркеров. Плюс акцентный цвет — оранжевый. Он поддерживал настроение кофейни и работал как визуальный якорь.</p>
+
+    <h2>Параллельно я готовил аудиторию к запуску сайта</h2>
+    <p>Пока я собирал сайт, я начал менять подачу контента в Telegram-канале кофейни.</p>
+    <p>Моя задача была не продавать зерно напрямую, а повысить доверие и экспертность.</p>
+    <p>Я делал развлекательно-познавательные публикации о кофе: сортах, вкусе, способах заваривания. Все посты оформлял в новой визуальной системе, чтобы у читателей постепенно сложилась связь между контентом и будущим сайтом.</p>
+
+    <div class="slider-container">
+      <div class="slider-wrapper" id="slider3">
+        <div class="slider-track">
+          <div class="slide"><img src="social-post-1.jpg" alt="Пост про обработку"></div>
+          <div class="slide"><img src="social-post-2.jpg" alt="Пост Хани"></div>
+          <div class="slide"><img src="social-post-3.jpg" alt="Пост Натуральная"></div>
+        </div>
+        <button class="slider-btn prev" onclick="moveSlide('slider3', -1)">&#10094;</button>
+        <button class="slider-btn next" onclick="moveSlide('slider3', 1)">&#10095;</button>
+      </div>
+      <div class="caption">Посты в новой стилистике — подготовка к релизу</div>
+    </div>
+
+    <div class="slider-container">
+      <div class="slider-wrapper" id="slider4">
+        <div class="slider-track">
+          <div class="slide"><img src="poster-filter-1.jpg" alt="Афиша Фильтр"></div>
+          <div class="slide"><img src="poster-filter-2.jpg" alt="Афиша Фильтр"></div>
+          <div class="slide"><img src="poster-filter-3.jpg" alt="Афиша Фильтр"></div>
+        </div>
+        <button class="slider-btn prev" onclick="moveSlide('slider4', -1)">&#10094;</button>
+        <button class="slider-btn next" onclick="moveSlide('slider4', 1)">&#10095;</button>
+      </div>
+      <div class="caption">Публикации в телеграм в стилистике сайта</div>
+    </div>
+
+    <h2>Как я собрал и запустил сайт</h2>
+    <p>Для сборки сайта я выбрал Figma Make. Инструмент позволял получить не макет, а сразу рабочий React-сайт. После нескольких итераций я получил нужный результат, доработал код локально и задеплоил фронтенд на GitHub Pages.</p>
+    <p>Для приёма заказов я развернул сервер на Render. Сначала заявки приходили на почту, но это оказалось неудобно: доступ должен быть у нескольких человек. Тогда я сделал Telegram-бота и связал его с сервером — заявки стали приходить напрямую в командный канал.</p>
+    <p>На бесплатном тарифе Render есть проблема — сервер «засыпает». Пользователь мог ждать около минуты. Я решил это UX-решением: сайт сразу показывает подтверждение заказа, а заявка уходит на сервер асинхронно, когда инстанс просыпается.</p>
+
+    <h2>Что получилось в итоге</h2>
+    <p>К назначенной дате сайт был готов и анонсирован в соцсетях кофейни.</p>
+    <p>Продаж не было — полноценное продвижение не запускали, аналитику я не подключал. Но сайт работает, заявки принимаются, инфраструктура готова к масштабированию и измерениям.</p>
+
+    <div class="highlight-box">
+      Я прошёл путь от проблемы до рабочего решения в реальных ограничениях — без бюджета, без команды, без идеальных условий.
+    </div>
+
+    <div class="slider-container">
+      <div class="slider-wrapper" id="slider5">
+        <div class="slider-track">
+          <div class="slide"><img src="site-hero.png" alt="Hero section"></div>
+          <div class="slide"><img src="site-cards-1.png" alt="Карточки товаров"></div>
+          <div class="slide"><img src="site-cards-2.png" alt="Карточки товаров"></div>
+        </div>
+        <button class="slider-btn prev" onclick="moveSlide('slider5', -1)">&#10094;</button>
+        <button class="slider-btn next" onclick="moveSlide('slider5', 1)">&#10095;</button>
+      </div>
+      <div class="caption">На фоне видео — я снял его сам по желанию руководителя. Карточки позволяют выбрать помол.</div>
+    </div>
+
+    <h2>Почему на этом этапе я остановился</h2>
+    <p>Когда сайт был готов и я анонсировал его в соцсетях, стало ясно, что дальше проект пойдёт в другом направлении.</p>
+    <p>Изначально я заходил в задачу как дизайнер и человек, который выстраивает систему: визуал, сайт, контент и техническую основу для продаж. Но к моменту запуска у работодателя изменились ожидания — основной акцент сместился на рилсы и регулярный видеоконтент.</p>
+    <p>Я не снимаю видео и не занимаюсь продакшеном рилсов. Мы обсудили этот момент: бюджета на отдельного рилсмейкера плюс мою роль не было, поэтому логичным решением стало искать специалиста, который сможет закрыть видеонаправление целиком и взять на себя сопутствующие задачи.</p>
+
+    <h2>Что я понял, делая этот проект</h2>
+    <p>Этот проект научил меня работать не с «красивым сайтом», а с реальной задачей и реальными ограничениями.</p>
+
+    <ol>
+      <li><b>Дизайн начинает работать задолго до сайта.</b> Печатные материалы, которые я сделал за несколько месяцев до разработки, помогли проверить визуальные решения в живой среде: как люди читают, что замечают, где путаются. Когда я вернулся к проекту спустя время и начал делать сайт, у меня уже было понимание, какие приёмы работают, а какие — нет. Это сильно сократило количество случайных решений.</li>
+      <li><b>Не будет идеальных условий.</b> У проекта не было бюджета на фотосъёмку, платный хостинг или команду. Вместо того чтобы откладывать запуск, я искал решения внутри ограничений: нейросетевые иллюстрации вместо фото, бесплатный хостинг с UX-костылями, Telegram-бот вместо сложной админки. Проект не стал идеальным, но стал рабочим — и это важнее.</li>
+      <li><b>Сайт сам по себе ничего не продаёт.</b> Работа над второй итерацией показала, что без доверия и контекста сайт выглядит как ещё одна страница в интернете. Подготовка публикаций в Telegram-канале, оформление контента в новой стилистике и постепенный подвод аудитории к запуску оказались не «дополнением», а частью продукта. Дизайн сайта и контент вокруг него — это одна система, а не два отдельных проекта.</li>
+      <li><b>Я научился думать о технической реализации как о части дизайна.</b> Я не просто «нарисовал и отдал в разработку», а сам собирал сайт, деплоил его, подключал сервер и Telegram-бота. Это изменило мой подход: я стал учитывать задержки, ошибки, поведение сервиса в реальности и то, что чувствует пользователь, когда что-то идёт не по плану. UX перестал быть абстракцией.</li>
+      <li><b>Проект показал границы моей роли.</b> Я умею проектировать визуальные системы, сайты и контент, но не могу закрыть всё в одиночку. Когда стало понятно, что заказчику нужен упор на видеоконтент, а бюджета на отдельного рилсмейкера нет, проект логично остановился на этапе запуска. Это не провал, а нормальная точка завершения, где задачи и ресурсы больше не совпали.</li>
+    </ol>
+
+    <div class="highlight-box" style="margin-top: 36px;">
+      Я научился доводить проект до запуска в условиях неопределённости, принимать неидеальные решения и отвечать за результат целиком: от идеи и дизайна до кода и передачи проекта в работу.
+    </div>
+
+  </article>
+
+  <script>
+    function moveSlide(sliderId, direction) {
+      const slider = document.getElementById(sliderId);
+      const track = slider.querySelector('.slider-track');
+      const slides = slider.querySelectorAll('.slide');
+      let currentIndex = parseInt(slider.getAttribute('data-index') || '0');
+      let newIndex = currentIndex + direction;
+      if (newIndex < 0) newIndex = slides.length - 1;
+      if (newIndex >= slides.length) newIndex = 0;
+      track.style.transform = `translateX(-${newIndex * 100}%)`;
+      slider.setAttribute('data-index', newIndex);
+    }
+  </script>
+</body>
+</html>

@@ -120,17 +120,15 @@
   <main>
     <section class="projects" aria-label="Проекты">
 
-      <!-- Project 1 -->
-      <article class="project" id="proj1" data-link="project1-case.html" onclick="toggleProject('proj1')" tabindex="0" role="button">
+      <article class="project" id="proj1" data-link="project-coffee.html" onclick="toggleProject('proj1')" tabindex="0" role="button">
         <div class="project-media">
-          <img src="project1-thumb.jpg" data-full="project1-full.png" alt="Проект — Фирменный стиль кофейни" loading="lazy" />
+          <img src="project1-thumb.jpg" alt="Проект — Фирменный стиль кофейни" loading="lazy" />
         </div>
         <div class="project-body">
           <div class="project-description">Лаконичная айдентика и упаковка для локальной кофе-точки. Работа над логотипом, палитрой и визуальным языком.</div>
         </div>
       </article>
 
-      <!-- Project 2 -->
       <article class="project" id="proj2" data-link="project2-case.html" onclick="toggleProject('proj2')" tabindex="0" role="button">
         <div class="project-media">
           <img src="project2-thumb.jpg" data-full="project2-full.jpg" alt="Проект — Презентация для кафе" loading="lazy" />
@@ -144,47 +142,25 @@
   </main>
 
   <script>
-    /**
-     * При клике:
-     * - на мобильных (<=900px) пытаемся проверить, доступна ли data-link (HEAD).
-     *   - если доступна -> перейти на неё;
-     *   - если нет или произошла ошибка -> открыть data-full (изображение) в новой вкладке.
-     * - на десктопе: разворачиваем карточку и подгружаем full image (как раньше).
-     */
     function toggleProject(id){
       const el = document.getElementById(id);
       const link = el.getAttribute('data-link');
       const img = el.querySelector('.project-media img');
       const full = img ? img.getAttribute('data-full') : null;
 
-      // мобильное поведение: сначала попытка перейти на data-link (если он есть),
-      // но если он недоступен — откроем full image чтобы не было 404.
-      if (window.innerWidth <= 900) {
-        if (link) {
-          // проверяем существование ресурса HEAD-запросом
-          fetch(link, { method: 'HEAD' })
-            .then(resp => {
-              if (resp.ok) {
-                window.location.href = link;
-              } else {
-                // fallback to full image
-                if (full) window.open(full, '_self');
-                else window.location.href = link; // последний шанс — всё равно перейти
-              }
-            })
-            .catch(() => {
-              // если запрос упал (CORS/сеть) — fallback
-              if (full) window.open(full, '_self');
-              else if (link) window.location.href = link;
-            });
-        } else if (full) {
-          // если data-link нет — просто открыть изображение
-          window.open(full, '_self');
-        }
-        return;
+      // Если есть ссылка на отдельный файл (как в случае с кофейней), переходим по ней сразу
+      if (link) {
+          window.location.href = link;
+          return;
       }
 
-      // Десктоп: поведение — расширить карточку и подгрузить full изображение
+      // Если ссылки нет, но есть data-full (как во втором проекте) - открываем картинку
+      if (window.innerWidth <= 900 && full) {
+          window.open(full, '_self');
+          return;
+      }
+
+      // Десктопное поведение для проектов БЕЗ ссылок (разворачивание картинки)
       const expanded = el.classList.toggle('expanded');
       el.setAttribute('aria-expanded', expanded ? 'true' : 'false');
 
@@ -194,12 +170,12 @@
           tmp.onload = () => img.src = full;
         } else {
           const thumb = img.getAttribute('src-thumb') || img.getAttribute('src');
-          if (img.getAttribute('src-thumb')) img.src = img.getAttribute('src-thumb');
+          img.src = thumb;
         }
       }
     }
 
-    // Сохраняем исходный src в data-src-thumb
+    // Сохраняем исходный src для возврата к миниатюре
     document.querySelectorAll('.project-media img').forEach(i=>{
       if(!i.getAttribute('src-thumb')) i.setAttribute('src-thumb', i.getAttribute('src'));
     });
