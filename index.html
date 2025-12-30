@@ -16,7 +16,8 @@
       --radius: 12px;
       --container: 1100px;
     }
-    *{box-sizing: border-box}
+
+    *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0;
@@ -28,6 +29,7 @@
       line-height:1.45;
       -webkit-text-size-adjust:100%;
     }
+
     header{
       max-width: var(--container);
       margin: 28px auto 40px;
@@ -37,23 +39,32 @@
       gap:20px;
       padding: 12px 20px;
     }
-    .profile{
-      display:flex;
-      gap:16px;
-      align-items:center;
-    }
-    .profile img{
-      width:64px;height:64px;border-radius:12px;object-fit:cover;box-shadow:0 6px 18px rgba(0,0,0,0.08);
-    }
-    .profile .name{display:flex;flex-direction:column;line-height:1;}
+    .profile{display:flex;gap:16px;align-items:center}
+    .profile img{width:64px;height:64px;border-radius:12px;object-fit:cover;box-shadow:0 6px 18px rgba(0,0,0,0.08)}
+    .profile .name{display:flex;flex-direction:column;line-height:1}
     .profile h1{margin:0;font-size:20px;font-weight:700;letter-spacing:0.2px}
     .profile p{margin:4px 0 0;color:var(--muted);font-size:13px}
+
     .socials{display:flex;gap:12px;align-items:center}
     .socials a{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:transparent;border:1px solid rgba(0,0,0,0.04);text-decoration:none;transition:transform .18s ease, background .18s ease}
     .socials a:hover{transform:translateY(-3px);background:rgba(0,0,0,0.03)}
     .socials svg{width:18px;height:18px;display:block}
-    main{max-width:var(--container);margin:0 auto;padding:0 20px 80px;display:flex;flex-direction:column;gap:56px}
+
+    main{max-width:var(--container);margin:0 auto;padding:0 20px 80px;display:flex;flex-direction:column;gap:32px}
+
+    /* Заголовок секции: значительно крупнее */
+    .section-title{
+      font-size:40px; /* значительно крупнее */
+      font-weight:700;
+      margin:0;
+      color:var(--text);
+      padding:0 6px;
+      line-height:1.05;
+    }
+
     .projects{display:grid;grid-template-columns:repeat(2,1fr);gap:36px}
+
+    /* Карточка проекта */
     .project{
       background:var(--card);
       border-radius:var(--radius);
@@ -62,27 +73,73 @@
       box-shadow:0 6px 30px rgba(20,18,16,0.06);
       transition:transform .28s ease, box-shadow .28s ease;
       cursor:pointer;
-      display:flex;flex-direction:column;
+      display:flex;
+      flex-direction:column;
+      min-height: 0;
     }
     .project:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(20,18,16,0.08)}
-    .project-media{width:100%;background:#faf8f6}
-    .project-media img{display:block;width:100%;height:auto;object-fit:cover}
-    .project-body{padding:18px 20px 26px}
-    .project-description{color:var(--muted);font-size:14px;margin:0}
+
+    /* Медиа — изображение по ширине без обрезания */
+    .project-media{
+      width:100%;
+      position:relative;
+      display:block;
+      background:#faf8f6;
+    }
+    .project-media img{
+      display:block;
+      width:100%;
+      height:auto;        /* ключ: сохраняет пропорции, без обрезки */
+      object-fit:unset;   /* отключаем cover */
+      vertical-align:middle;
+    }
+
+    /* Подпись поверх изображения (без градиента), серым цветом */
+    .project-caption{
+      position:absolute;
+      left:12px;
+      right:12px;
+      bottom:12px;
+      padding:4px 6px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.3;
+      display:block;
+      text-decoration:none;
+      pointer-events:none; /* подпись не мешает клику по карточке */
+      background:transparent; /* убрали градиент/затемнение */
+      text-shadow:none;
+    }
+
+    /* Убрали дополнительную мета-подпись (в HTML тоже удалена) */
+
+    /* Анимация появления */
     .project{opacity:0;transform:translateY(12px);animation:fadeUp .5s forwards}
     .project:nth-child(1){animation-delay:.05s}
     .project:nth-child(2){animation-delay:.12s}
     @keyframes fadeUp{to{opacity:1;transform:none}}
+
+    /* Состояние expanded оставлено (при желании увеличит изображение) */
+    .project.expanded img{max-width:100%}
+
+    /* Responsive */
     @media (max-width:900px){
       .projects{grid-template-columns:1fr}
       header{padding:8px 20px}
       .profile img{width:56px;height:56px}
+      .section-title{font-size:32px}
     }
+
     @media (max-width:480px){
       header{flex-direction:column;align-items:flex-start;gap:12px}
       .socials{margin-top:6px}
       main{padding:0 16px 60px}
+      .section-title{font-size:28px}
     }
+
+    /* Фокус и доступность */
+    .project[role="button"]{outline:none}
+    .project:focus{box-shadow:0 10px 30px rgba(20,18,16,0.08);transform:translateY(-6px)}
   </style>
 </head>
 <body>
@@ -91,7 +148,7 @@
       <img src="myphoto.jpg" alt="Алексей Сергeев" loading="lazy"/>
       <div class="name">
         <h1>Алексей Сергeев</h1>
-        <p>Графический дизайнер • Брендинг • Веб</p>
+        <p>Продуктовый дизайнер • Брендинг • Веб</p>
       </div>
     </div>
 
@@ -118,69 +175,74 @@
   </header>
 
   <main>
+    <!-- Заголовок секции "Портфолио" -->
+    <h2 class="section-title" id="portfolio">Портфолио</h2>
+
     <section class="projects" aria-label="Проекты">
 
-      <article class="project" id="proj1" data-link="project-coffee.html" onclick="toggleProject('proj1')" tabindex="0" role="button">
+      <article class="project" id="proj1" data-link="project-coffee.html" onclick="toggleProject('proj1')" tabindex="0" role="button" aria-expanded="false">
         <div class="project-media">
           <img src="project1-thumb.jpg" alt="Проект — Фирменный стиль кофейни" loading="lazy" />
-        </div>
-        <div class="project-body">
-          <div class="project-description">Рабочий кейс: проектирование сайта и создание визуального стиля для кофейни</div>
+          <div class="project-caption">Рабочий кейс: проектирование сайта и визуального стиля</div>
         </div>
       </article>
 
-      <article class="project" id="proj2" data-link="project-hotel.html" onclick="toggleProject('proj2')" tabindex="0" role="button">
+      <article class="project" id="proj2" data-link="project-hotel.html" onclick="toggleProject('proj2')" tabindex="0" role="button" aria-expanded="false">
         <div class="project-media">
-          <img src="project2-thumb.jpg" data-full="project2-full.jpg" alt="Проект — Презентация для кафе" loading="lazy" />
-        </div>
-        <div class="project-body">
-          <div class="project-description">Учебный кейс: проектирование мобильного приложения</div>
+          <img src="project2-thumb.jpg" alt="Проект — Презентация для кафе" loading="lazy" />
+          <div class="project-caption">Учебный кейс: проектирование мобильного приложения</div>
         </div>
       </article>
+
+      <!-- Добавляйте новые карточки по тому же шаблону -->
 
     </section>
   </main>
 
   <script>
+    // Сохраняем исходный src миниатюры для возврата
+    document.querySelectorAll('.project-media img').forEach(img=>{
+      if(!img.getAttribute('data-src-thumb')) img.setAttribute('data-src-thumb', img.getAttribute('src') || '');
+    });
+
     function toggleProject(id){
       const el = document.getElementById(id);
+      if(!el) return;
       const link = el.getAttribute('data-link');
-      const img = el.querySelector('.project-media img');
+      const media = el.querySelector('.project-media');
+      const img = media ? media.querySelector('img') : null;
       const full = img ? img.getAttribute('data-full') : null;
 
-      // Если есть ссылка на отдельный файл (как в случае с кофейней), переходим по ней сразу
-      if (link) {
-          window.location.href = link;
-          return;
+      // Если есть ссылка на отдельную страницу — переходим.
+      if (link && link.trim() !== "") {
+        window.location.href = link;
+        return;
       }
 
-      // Если ссылки нет, но есть data-full (как во втором проекте) - открываем картинку
+      // Мобильное поведение: если data-full есть, открываем в текущем окне
       if (window.innerWidth <= 900 && full) {
-          window.open(full, '_self');
-          return;
+        window.open(full, '_self');
+        return;
       }
 
-      // Десктопное поведение для проектов БЕЗ ссылок (разворачивание картинки)
+      // Для десктопа — переключаем состояние развернуто/свернуто
       const expanded = el.classList.toggle('expanded');
       el.setAttribute('aria-expanded', expanded ? 'true' : 'false');
 
-      if (full) {
+      // Если есть полноразмерная картинка, подгружаем/меняем src
+      if (full && img) {
         if (expanded) {
-          const tmp = new Image(); tmp.src = full;
-          tmp.onload = () => img.src = full;
+          const tmp = new Image();
+          tmp.src = full;
+          tmp.onload = () => { img.src = full; };
         } else {
-          const thumb = img.getAttribute('src-thumb') || img.getAttribute('src');
-          img.src = thumb;
+          const thumb = img.getAttribute('data-src-thumb') || '';
+          if (thumb) img.src = thumb;
         }
       }
     }
 
-    // Сохраняем исходный src для возврата к миниатюре
-    document.querySelectorAll('.project-media img').forEach(i=>{
-      if(!i.getAttribute('src-thumb')) i.setAttribute('src-thumb', i.getAttribute('src'));
-    });
-
-    // Доступность: Enter / Space
+    // Клавиатурная доступность: Enter / Space
     document.querySelectorAll('.project[role="button"]').forEach(el=>{
       el.addEventListener('keydown', e=>{
         if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleProject(el.id); }
