@@ -10,7 +10,7 @@
 <style>
 :root{
   --bg: #ffffff;
-  --card-bg: #ffffff; 
+  --card-bg: #ffffff;
   --text: #000000;
   --muted: #666666;
   --grid-gap: 30px;
@@ -39,13 +39,6 @@ body {
   position: relative;
 }
 
-/* Сетка для списка проектов */
-.grid-row {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  column-gap: var(--grid-gap);
-}
-
 /* --- HEADER --- */
 .top-nav {
   height: 80px;
@@ -62,6 +55,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.02em;
   transition: opacity 0.2s;
+  white-space: nowrap; /* Запрещаем перенос слов внутри ссылок */
 }
 
 .top-nav a:hover { opacity: 0.6; }
@@ -85,7 +79,8 @@ body {
 
 .hero-left {
   flex: 1;
-  padding: 60px;
+  /* ДЕСКТОП: Отступ слева 0, чтобы выровнять с сеткой сайта */
+  padding: 60px 40px 60px 0; 
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -125,6 +120,7 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: top center;
   display: block;
 }
 
@@ -138,7 +134,7 @@ body {
   font-size: clamp(40px, 6vw, 80px);
   font-weight: 700;
   letter-spacing: -0.02em;
-  margin: 0 0 20px 0;
+  margin: 0 0 40px 0;
 }
 
 .project-list {
@@ -214,8 +210,6 @@ body {
   text-transform: uppercase;
   white-space: nowrap;
   text-align: center;
-  
-  /* Новые стили для ссылки */
   text-decoration: none;
   color: var(--text);
   cursor: pointer;
@@ -226,64 +220,120 @@ body {
   opacity: 0.6;
 }
 
-/* --- АДАПТИВ --- */
+/* --- АДАПТИВ (ПЛАНШЕТЫ И МОБИЛЬНЫЕ) --- */
 @media (max-width: 900px) {
-  .container { 
-    padding: 0 20px; 
+  .container {
+    padding: 0 20px;
   }
-
+  
+  /* ИСПРАВЛЕНИЕ 1: ШАПКА В ОДНУ СТРОКУ */
   .top-nav {
-    justify-content: space-between; /* Распределяем ссылки в шапке */
-    gap: 10px;
-    font-size: 10px; /* Немного уменьшим шрифт для узких экранов */
+    justify-content: space-between;
+    gap: 20px; /* Чуть увеличил отступ для красоты */
+    font-size: 11px;
+    flex-wrap: nowrap; /* Запрещаем перенос на вторую строку */
+    overflow-x: auto; /* Если экран совсем маленький, можно скроллить пальцем влево-вправо */
+    -webkit-overflow-scrolling: touch;
+    /* Скрываем скроллбар для эстетики */
+    scrollbar-width: none; 
+    padding: 20px 0;
+  }
+  
+  .top-nav::-webkit-scrollbar { 
+    display: none; 
+  }
+  
+  .top-nav .name {
+    margin-right: 0;
+    flex-shrink: 0; /* Имя не сжимается */
+  }
+  
+  .top-nav a {
+      flex-shrink: 0; /* Ссылки не сжимаются */
   }
 
   .hero-section {
-    height: auto; /* Сбрасываем фиксированную высоту */
+    height: auto;
     min-height: 0;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
   }
 
   .hero-card {
-    flex-direction: column; /* Элементы встают друг под друга: текст сверху, фото снизу */
-    border-radius: 16px; /* Чуть меньше скругление для мобилки */
+    flex-direction: column;
+    border-radius: 16px;
   }
 
+  /* ИСПРАВЛЕНИЕ 2: ВЫРАВНИВАНИЕ ЗАГОЛОВКА */
   .hero-left {
-    padding: 40px 20px 30px; /* Уменьшаем отступы */
-    order: 1; /* Текст будет первым */
+    order: 1;
+    /* Мы вернули 20px слева и справа.
+       Теперь текст не прилипает к краю экрана, 
+       а имеет такой же отступ, как и весь контейнер.
+    */
+    padding: 40px 20px 30px 20px; 
+  }
+  
+  .main-title span.junior {
+      margin-left: -0.05em; 
   }
 
   .hero-right {
-    order: 2; /* Фото будет вторым (под заголовком) */
+    order: 2;
     flex: 0 0 auto;
-    height: 450px; /* Задаем комфортную высоту для фото */
     width: 100%;
+    height: 50vh; 
+    max-height: 500px;
+    min-height: 300px;
   }
 
   .main-title {
-    font-size: 48px; /* Оптимальный размер для мобильного */
+    font-size: 42px; 
     margin-bottom: 20px;
   }
 
-  .hero-meta {
-    margin-top: 10px;
+  .project-list {
+      gap: 40px;
   }
 
-  .project-item { 
-    display: flex; 
-    flex-direction: column; 
-    padding-bottom: 30px; 
-    border-bottom: 1px solid #eee; /* Делаем разделитель видимым */
+  .project-item {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .project-arrow {
+    display: block; 
+    margin-top: 15px;
   }
   
-  .project-arrow { 
-    display: none; /* Стрелочку на мобилках часто скрывают, чтобы не мешала */
+  .project-arrow svg {
+      width: 30px;
+      height: 30px;
   }
 
-  .footer-nick { 
-    font-size: 12vw; 
+  .footer-nick {
+    font-size: 10.5vw; 
+    white-space: normal; 
+    word-break: break-all;
+    line-height: 0.9;
   }
+}
+
+@media (max-width: 480px) {
+    .top-nav { gap: 15px; } /* Чуть плотнее на совсем маленьких */
+    
+    .hero-left {
+        padding: 30px 20px 20px 20px; /* Держим отступ 20px даже на маленьких */
+    }
+    
+    .main-title {
+        font-size: 36px;
+    }
+    
+    .hero-right {
+        height: 400px;
+    }
 }
 </style>
 </head>
@@ -306,7 +356,6 @@ body {
           <span class="junior">Junior</span>
           Product<br>Designer
         </h1>
-        
         <div class="hero-meta">
           UX/UI&nbsp;&nbsp;ВЕБ&nbsp;&nbsp;БРЕНДИНГ
         </div>
@@ -321,6 +370,7 @@ body {
     <h2 class="section-label">Portfolio</h2>
     
     <div class="project-list">
+      
       <a href="project-coffee.html" class="project-item">
         <div class="project-info">
           <h3 class="project-title">Сайт для «Будем Знакомы»</h3>
@@ -344,6 +394,7 @@ body {
           </svg>
         </div>
       </a>
+
     </div>
   </main>
 
