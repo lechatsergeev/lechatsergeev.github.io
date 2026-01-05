@@ -228,14 +228,62 @@ body {
 
 /* --- АДАПТИВ --- */
 @media (max-width: 900px) {
-  .hero-section { height: auto; }
-  .hero-card { flex-direction: column-reverse; }
-  .hero-right { flex: 0 0 auto; height: 400px; width: 100%; }
-  .hero-left { padding: 30px; gap: 40px; }
-  .container { padding: 0 20px; }
-  .project-item { display: flex; flex-direction: column; padding-bottom: 30px; border-bottom: 1px solid #ffffff; }
-  .project-arrow { align-self: flex-start; margin-top: 20px; }
-  .footer-nick { font-size: 11vw; }
+  .container { 
+    padding: 0 20px; 
+  }
+
+  .top-nav {
+    justify-content: space-between; /* Распределяем ссылки в шапке */
+    gap: 10px;
+    font-size: 10px; /* Немного уменьшим шрифт для узких экранов */
+  }
+
+  .hero-section {
+    height: auto; /* Сбрасываем фиксированную высоту */
+    min-height: 0;
+    margin-bottom: 20px;
+  }
+
+  .hero-card {
+    flex-direction: column; /* Элементы встают друг под друга: текст сверху, фото снизу */
+    border-radius: 16px; /* Чуть меньше скругление для мобилки */
+  }
+
+  .hero-left {
+    padding: 40px 20px 30px; /* Уменьшаем отступы */
+    order: 1; /* Текст будет первым */
+  }
+
+  .hero-right {
+    order: 2; /* Фото будет вторым (под заголовком) */
+    flex: 0 0 auto;
+    height: 450px; /* Задаем комфортную высоту для фото */
+    width: 100%;
+  }
+
+  .main-title {
+    font-size: 48px; /* Оптимальный размер для мобильного */
+    margin-bottom: 20px;
+  }
+
+  .hero-meta {
+    margin-top: 10px;
+  }
+
+  .project-item { 
+    display: flex; 
+    flex-direction: column; 
+    padding-bottom: 30px; 
+    border-bottom: 1px solid #eee; /* Делаем разделитель видимым */
+  }
+  
+  .project-arrow { 
+    display: none; /* Стрелочку на мобилках часто скрывают, чтобы не мешала */
+  }
+
+  .footer-nick { 
+    font-size: 12vw; 
+  }
 }
 </style>
 </head>
