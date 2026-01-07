@@ -7,195 +7,334 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Caveat&family=Seymour+One&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg: #ffffff;
-      --text: #222;
-      --muted: #6f6b66;
-      --accent: #c4ff3a;
-      --container: 740px;
-      --radius: 16px;
-      --left-offset: 8vw;
-      --pink-plaque: #fff6f8;
-      --pink-plaque-shadow: rgba(255,150,170,0.06);
-      --card-bg: #fafafa;
-      --shadow: 0 8px 18px rgba(0,0,0,0.06);
-    }
+   :root{
+     --bg: #ffffff;
+     --text: #000000;
+     --muted: #555555;
+     --accent: #FF5E3A;
+    
+     /* Ширина текстового контейнера */
+     --container: 740px;
+     /* Отступ слева для текста на десктопе */
+     --left-offset: 8vw;
+     --link-blue: #3b6f9a;
+     --link-blue-hover: #2e5976;
+   }
+   *{box-sizing: border-box}
+   html,body{height:100%}
+   body{
+     margin:0;
+     font-family: 'Inter', system-ui, sans-serif;
+     background: var(--bg);
+     color:var(--text);
+     line-height: 1.5;
+     -webkit-font-smoothing:antialiased;
+     overflow-x: hidden;
+   }
+   /* --- HEADER --- */
+   header {
+     width: 100%;
+     padding: 32px 20px 24px var(--left-offset);
+   }
+   .back-link {
+     text-decoration: none;
+     color: var(--muted);
+     font-size: 14px;
+     display: inline-flex;
+     align-items: center;
+     gap: 6px;
+     transition: color 0.2s;
+     font-weight: 500;
+   }
+   .back-link:hover { color: var(--text); }
 
-    *{box-sizing: border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family: 'Inter', system-ui, sans-serif;
-      background: var(--bg);
-      color:var(--text);
-      line-height: 1.45;
-      -webkit-font-smoothing:antialiased;
-      overflow-x: hidden;
-    }
+   /* --- ARTICLE --- */
+   article {
+     max-width: var(--container);
+     margin-left: var(--left-offset);
+     margin-right: 20px;
+     padding-bottom: 100px;
+   }
 
-    header { width: 100%; padding: 32px 20px 24px var(--left-offset); }
-    .back-link {
-      text-decoration: none;
-      color: var(--muted);
-      font-size: 14px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: color 0.2s;
-      font-weight: 500;
-    }
-    .back-link:hover { color: var(--text); }
+   /* ТИПОГРАФИКА */
+   h1 {
+     font-family: 'Inter', sans-serif;
+     font-size: clamp(32px, 5vw, 64px);
+     line-height: 1.1;
+     font-weight: 800;
+     margin: 0 0 40px 0;
+     letter-spacing: -0.02em;
+     color: #000;
 
-    article { max-width: var(--container); margin-left: var(--left-offset); margin-right: 20px; padding-bottom: 100px; }
-    h1 { font-family: 'Inter', sans-serif; font-size: 36px; line-height: 1.1; font-weight: 800; margin: 0 0 24px 0; letter-spacing: -0.02em; }
-    h2 { font-family: 'Inter', sans-serif; font-size: 26px; margin: 48px 0 20px 0; font-weight: 700; letter-spacing: -0.01em; }
-    p { margin: 0; font-size: 18px; color: #333; text-indent: 1.5em; line-height: 1.45; }
+     /* --- ИЗМЕНЕНИЯ ДЛЯ ЗАГОЛОВКА --- */
+     width: 100vw;
+     margin-left: calc(-1 * var(--left-offset));
+     padding-left: var(--left-offset);
+     padding-right: 20px;
+     box-sizing: border-box;
+   }
+  
+   h1 a.project-link, .cta-link {
+     color: var(--link-blue);
+     text-decoration: none;
+     display: inline-flex;
+     align-items: baseline;
+     gap: 0.2em;
+     border-bottom: 2px solid rgba(59, 111, 154, 0.3);
+     transition: all 0.2s ease;
+   }
+   h1 a.project-link:hover, .cta-link:hover {
+     color: var(--link-blue-hover);
+     border-bottom-color: var(--link-blue-hover);
+   }
+   h2 {
+     font-family: 'Inter', sans-serif;
+     font-size: 30px;
+     margin: 64px 0 24px 0;
+     font-weight: 700;
+     letter-spacing: -0.01em;
+     color: #000;
+   }
+   p {
+     margin: 0 0 24px 0;
+     font-size: 18px;
+     color: #000;
+     line-height: 1.6;
+   }
 
-    .highlight-box {
-      margin: 40px 0; padding: 28px 32px; font-weight: 500; font-size: 18px; line-height: 1.5;
-      background: var(--pink-plaque); border-radius: 12px;
-      box-shadow: 0 40px 80px var(--pink-plaque-shadow); color: var(--text);
-    }
+   /* ЛИД-АБЗАЦ (Вступление) */
+   .lead-text {
+     font-size: 20px;
+     line-height: 1.5;
+     font-weight: 400;
+     font-style: normal;
+     color: #000000;
+     margin-bottom: 56px;
+     padding-left: 2px;
+   }
 
-    .single-image-container { margin-top: 40px; margin-bottom: 40px; width: 100%; }
-    .single-image-wrapper { width: 100%; border-radius: var(--radius); overflow: hidden; position: relative; display: flex; justify-content: center; }
-    .single-image-wrapper img { width: auto; max-width: 100%; height: auto; max-height: 80vh; object-fit: contain; }
+   .accent-text {
+     font-size: 22px;
+     font-style: italic;
+     line-height: 1.45;
+     color: #000;
+     margin: 48px 0;
+     padding-left: 24px;
+     border-left: 3px solid var(--accent);
+   }
 
-    /* ===== Ряды изображений (вместо каруселей) ===== */
-    .image-row {
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
-      margin-top: 24px;
-      margin-bottom: 24px;
-      overflow: visible;
-    }
+   /* CTA В ПОДВАЛЕ */
+   .footer-cta {
+     font-size: 20px;
+     font-weight: 600;
+     margin-top: 64px;
+     color: #000;
+   }
 
-    .image-item {
-      flex: 1 1 calc((100% - 32px) / 3); /* 3 в ряд */
-      min-width: 0;
-      border-radius: 12px;
-      overflow: hidden;
-      background: var(--card-bg);
-      box-shadow: var(--shadow);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 260px; /* фиксированная высота контейнера чтобы ряд был ровный */
-    }
-
-    /* Показываем всю картинку без обрезки */
-    .image-item img {
-      max-width: 100%;
-      max-height: 100%;
+   /* --- ИЗОБРАЖЕНИЯ НА ВСЮ ШИРИНУ --- */
+   .full-width-container {
+     margin-top: 64px;
+     margin-bottom: 72px;
+     width: 100vw;
+     margin-left: calc(-1 * var(--left-offset));
+     padding: 0;
+   }
+   .image-track {
+     display: flex;
+     justify-content: center;
+     align-items: flex-start; 
+     gap: 20px;
+     width: 100%;
+     padding: 0 24px;
+     box-sizing: border-box;
+   }
+   .image-item {
+     flex: 1;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+   }
+   .image-item img {
+     width: 100%;
+     height: auto;
+     border-radius: 12px;
+     display: block;
+   }
+   .image-track.single img {
+      max-height: 85vh;
+      object-fit: contain; 
       width: auto;
-      height: auto;
-      object-fit: contain;
-      display: block;
-      margin: 0 auto;
-    }
+      max-width: 100%;
+   }
+   .caption {
+     text-align: center;
+     font-size: 14px;
+     color: var(--muted);
+     margin-top: 16px;
+     font-family: 'Inter', sans-serif;
+     max-width: var(--container);
+     margin-left: auto;
+     margin-right: auto;
+     padding-left: 20px;
+     padding-right: 20px;
+   }
 
-    .caption { text-align: left; font-size: 14px; color: var(--muted); margin-top: 14px; font-weight: 400; }
+   /* --- МОБИЛЬНАЯ ВЕРСИЯ --- */
+   @media (max-width: 768px) {
+     :root { --left-offset: 0px; }
+    
+     header { padding: 24px 20px; }
+    
+     article {
+       padding: 0 20px 60px 20px;
+       margin-right: 0;
+       margin-left: 0;
+     }
+     h1 { 
+        margin-bottom: 24px; 
+        font-size: 28px;
+        width: auto;
+        margin-left: 0;
+        padding-left: 0;
+        padding-right: 0;
+     }
+     h2 { font-size: 26px; margin-top: 48px;}
+     p { font-size: 16px; }
+    
+     .lead-text { font-size: 18px; margin-bottom: 40px; }
+     .accent-text { font-size: 19px; padding-left: 16px; margin: 32px 0; }
 
-    /* Responsive: 2 in a row on medium screens, 1 on small screens */
-    @media (max-width: 900px) {
-      .image-item { flex: 1 1 calc((100% - 16px) / 2); height: 220px; }
-      .image-row { gap: 12px; }
-    }
-    @media (max-width: 520px) {
-      :root { --left-offset: 0px; }
-      header { padding: 24px 20px; }
-      article { padding: 0 20px 60px 20px; }
-      h1 { font-size: 28px; }
-      p { font-size: 16px; }
-      .image-item { flex: 1 1 100%; height: 180px; }
-    }
-    /* Конец: ряды изображений */
+     .full-width-container {
+        margin-left: -20px;
+        width: 100vw;
+        margin-top: 40px;
+        margin-bottom: 48px;
+     }
+     .image-track {
+         flex-direction: column;
+         gap: 16px;
+         padding: 0 20px;
+         align-items: center;
+     }
+     .image-item img {
+         max-height: none;
+         width: 100%;
+         object-fit: contain;
+     }
+     .image-track.single { padding: 0; }
+     .image-track.single img {
+         border-radius: 0;
+         width: 100%;
+     }
+     .caption { text-align: left; padding-left: 20px; }
+   }
   </style>
 </head>
-
 <body>
   <header>
-    <a href="index.html" class="back-link" aria-label="Назад к портфолио">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-      Назад к портфолио
+    <a href="index.html" class="back-link">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-top:-2px"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Назад к&nbsp;портфолио
     </a>
   </header>
 
   <article>
+   
     <h1>Мобильное приложение для бронирования капсульного отеля</h1>
 
-    <p>В основе этого проекта лежало желание упростить процесс, который в реальности часто вызывает стресс — поиск и бронирование свободного места для работы или отдыха. Проанализировав существующие решения, я заметил, что пользователь часто теряется в обилии условий и не понимает, что делать после того, как оплата прошла. Моей задачей было создать бесшовный путь: от первого клика до момента, когда человек прикладывает телефон к терминалу на входе.</p>
+    <p class="lead-text">
+  Задание в школе дизайнеров Бюро Горбунова: спроектировать интерфейс бронирования отеля при аэропорте. Важно добавить будильник для гостей отеля, чтобы они не пропустили рейс, а ещё сделать интерфейс простым, чтобы уставший гость быстро прошел бронирование, легко нашел отель и заселился.
+</p>
 
-    <div class="highlight-box">
-      Я проектировал не просто набор экранов, а систему, которая ведет пользователя за руку и убирает неопределенность.
+    <div class="accent-text">
+      Я выбрал мобильное приложение, а не сайт. Так гость мог получить офлайн доступ к QR-коду и пуш-уведомления, что важно для аэропорта.
     </div>
 
-    <div class="single-image-container">
-      <div class="single-image-wrapper">
-        <img src="main-mockup.jpg" alt="Главный экран приложения">
-      </div>
-      <div class="caption">Концепт интерфейса: фокус на уюте и легкости доступа</div>
+    <div class="full-width-container">
+        <div class="image-track single">
+            <div class="image-item">
+                <img src="main-mockup.jpg" alt="Главный экран приложения">
+            </div>
+        </div>
+        <div class="caption">Концепт интерфейса: фокус на уюте и легкости доступа</div>
     </div>
 
-    <h2>Точка входа и работа с состояниями</h2>
+    <h2>Точка входа и контекстная помощь</h2>
+    <p>В условиях аэропорта пользователь часто находится в стрессе или дефиците времени. Поэтому главный экран спроектирован максимально лаконично: он сразу дает ответ на вопрос „Где я?“ и предлагает единственное целевое действие — бронирование».
+    </p>
+    <p>Для экрана „Мои брони“ я продумал состояние Empty State. Если у пользователя еще нет заказов, экран не остается пустым — он содержит четкий призыв к действию (CTA), помогая пользователю вернуться в основной сценарий.
+    </p>
 
-    <p>Работа над интерфейсом началась с экрана приветствия. Здесь было важно не просто показать красивые иллюстрации, а сразу задать настроение спокойствия и уверенности. Я использовал мягкую палитру и округлые формы, чтобы приложение воспринималось как дружелюбный помощник. Онбординг короткий — мы не тратим время пользователя зря, а сразу объясняем ценность продукта.</p>
-
-    <!-- Ряд изображений вместо первой карусели -->
-    <div class="image-row" aria-label="Экраны: приветствие и пустое состояние">
-      <div class="image-item"><img src="screen-1.jpg" alt="Онбординг"></div>
-      <div class="image-item"><img src="screen-2.jpg" alt="Пустое состояние"></div>
-      <div class="image-item"><img src="screen-13.jpg" alt="Онбординг — дополнительный экран"></div>
-    </div>
-    <div class="caption">Экран приветствия и логика обработки пустого раздела бронирований</div>
-
-    <h2>Прозрачность выбора и гибкость сетки</h2>
-
-    <p>Когда мы переходим к самому процессу выбора, перед нами встает вопрос: как сделать сложную сетку времени понятной? На экранах выбора зон я реализовал систему карточек с четкой иерархией. Пользователь сразу видит тип места, его особенности (наличие розеток, тихая зона) и актуальную стоимость. Это убирает этап «сюрпризов» в корзине.</p>
-
-    <!-- Ряд изображений вместо второй карусели -->
-    <div class="image-row" aria-label="Экраны: выбор зоны, выбор времени, фильтры">
-      <div class="image-item"><img src="screen-3.jpg" alt="Выбор зоны"></div>
-      <div class="image-item"><img src="screen-4.jpg" alt="Выбор времени"></div>
-      <div class="image-item"><img src="screen-5.jpg" alt="Фильтры"></div>
-    </div>
-    <div class="caption">Процесс подбора: от фильтрации по категориям до выбора конкретного слота</div>
-
-    <h2>Подтверждение без страха ошибки</h2>
-
-    <p>Этап заполнения данных — самый критический момент. Чтобы снизить когнитивную нагрузку, я разбил форму на логические блоки. Мы сначала уточняем параметры места, затем переходим к личным данным. Это позволяет пользователю сфокусироваться на одной задаче. Экран финального подтверждения работает как «чек-лист», где собрана вся информация: от даты и времени до конкретной зоны.</p>
-
-    <div class="highlight-box">
-       Хороший интерфейс должен быть прозрачным, как чек в кофейне: ты точно знаешь, за что платишь, еще до нажатия кнопки.
+    <div class="full-width-container">
+        <div class="image-track">
+          <div class="image-item"><img src="screen-1.jpg" alt="Онбординг"></div>
+          <div class="image-item"><img src="screen-2.jpg" alt="Пустое состояние"></div>
+          <div class="image-item"><img src="screen-10.jpg" alt="Онбординг — дополнительный экран"></div>
+        </div>
+        <div class="caption">Экран приветствия и логика обработки пустого раздела бронирований</div>
     </div>
 
-    <!-- Ряд изображений вместо карусели подтверждения (три изображения рядом) -->
-    <div class="image-row" aria-label="Подтверждение — скриншоты">
-      <div class="image-item"><img src="screen-6.jpg" alt="Подтверждение — 1"></div>
-      <div class="image-item"><img src="screen-7.jpg" alt="Подтверждение — 2"></div>
-      <div class="image-item"><img src="screen-8.jpg" alt="Подтверждение — 3"></div>
+    <h2>Выбор капсулы и времени пребывания</h2>
+    <p>На выбор две капсулы: одноместная или двухместная. Когда гость выбирает капсулу, сразу появляется полотно времени, где есть три измерения: время, линия загруженности отеля, цена. Цена появляется, когда гость выбирает время — так мы показываем формирование цены прозрачно, у гостя не остаётся вопросов, как получилась именно такая сумма.
+</p>
+    <p>Сверху показан путь пользователя, в котором всего 4 шага — это для создания ощущения простоты бронирования. </p>
+    <p>Экран с будильником можно пропустить. Кнопка «Разбудить» находится на том же месте, что и «Продолжить» на предыдущем экране — так гостю будет проще пройти этот экран. </p>
+    <p>На экране с будильником расширяется плашка с данными о бронировании. Это важный момент: гость должен иметь возможность в любой момент бронирования изменить любой параметр, не возвращаясь назад и теряя данные.</p>
+
+    <div class="full-width-container">
+        <div class="image-track">
+          <div class="image-item"><img src="screen-3.jpg" alt="Выбор зоны"></div>
+          <div class="image-item"><img src="screen-4.jpg" alt="Выбор времени"></div>
+          <div class="image-item"><img src="screen-5.jpg" alt="Фильтры"></div>
+        </div>
+        <div class="caption">Процесс подбора: от фильтрации по категориям до выбора конкретного слота</div>
     </div>
-    <div class="caption">Финальный экран подтверждения: чек-лист, детали брони и подсказки</div>
 
-    <h2>Сопровождение: «живой билет» и навигация</h2>
+    <h2>Заполнение формы данных пользователя</h2>
+        <p>Для выбора времени будильника используется стандартный паттерн iOS (Picker View). Знакомый интерфейс не требует времени на изучение и позволяет установить время привычным жестом».</p>
+    <p>Заполнение паспортных данных — самый критический этап, на котором пользователи чаще всего покидают приложение. Моей задачей было сделать этот процесс максимально бесшовным.</p>
+    <p>Чтобы избавить гостя от ручного ввода, я интегрировал два альтернативных сценария: автозаполнение через Госуслуги и сканирование паспорта. Это сокращает время прохождения шага с нескольких минут до нескольких секунд.</p>
+    <p>Я придерживаюсь принципа «свободы выбора»: даже если пользователь уже начал вводить данные вручную, кнопки автоматизации остаются доступны. Это позволяет сменить способ ввода в любой момент, если рутина стала утомительной.</p>
 
-    <p>Самая важная часть работы началась там, где обычные сервисы заканчиваются — на этапе подтвержденной брони. Я реализовал концепцию активной карточки-инструкции. Центральным элементом стал QR-код — физический ключ к месту. Чтобы пользователь не метался по зданию, прямо под кодом интегрирована мини-карта и точный номер места. Это решает проблему навигации внутри объекта еще до того, как она возникнет.</p>
-
-    <!-- Ряд изображений вместо третьей карусели -->
-    <div class="image-row" aria-label="Билет, карта, QR-код">
-      <div class="image-item"><img src="screen-10.jpg" alt="Билет"></div>
-      <div class="image-item"><img src="screen-11.jpg" alt="Карта навигации"></div>
-      <div class="image-item"><img src="screen-12.jpg" alt="QR-код"></div>
+    <div class="full-width-container">
+        <div class="image-track">
+          <div class="image-item"><img src="screen-6.jpg" alt="Подтверждение — 1"></div>
+          <div class="image-item"><img src="screen-7.jpg" alt="Подтверждение — 2"></div>
+          <div class="image-item"><img src="screen-8.jpg" alt="Подтверждение — 3"></div>
+        </div>
+        <div class="caption">Финальный экран подтверждения: чек-лист, детали брони и подсказки</div>
     </div>
-    <div class="caption">Активное бронирование: QR-код для входа и подсказки по навигации на месте</div>
+
+    <h2>Оплата, поиск отеля и заселение</h2>
+    <p>Финальный этап проектирования сосредоточен на том, чтобы дать пользователю чувство контроля и уверенности в успешном бронировании.</p>
+    <p>Экран оплаты — это последняя точка проверки. Я вывел сюда полную информацию о бронировании с возможностью быстрого редактирования. Это избавляет пользователя от страха совершить ошибку и необходимости начинать процесс заново.</p>
+    <p>Я продумал логику отображения карточек в разделе «Мои брони» в зависимости от их количества:
+
+Индивидуальный подход: если у гостя всего одна бронь, карточка отображается сразу в развернутом виде с QR-кодом. Это экономит время при заселении — не нужно делать лишних кликов.
+
+Эффективная группировка: при наличии нескольких броней используется паттерн «стека». Карточки наслаиваются друг на друга, но при этом ключевые параметры (тип капсулы, дата, имя) остаются видимыми для быстрой идентификации.</p>
+    <p>Поиск отеля в аэропорту — отдельный квест. Модальное окно с картой и текстовой подсказкой («возле третьего входа») работает на опережение вопроса гостя. Кнопка «Построить маршрут» связывает цифровой опыт с физическим перемещением, завершая идеальный пользовательский сценарий.</p>
+
+    <div class="full-width-container">
+        <div class="image-track">
+          <div class="image-item"><img src="screen-9.jpg" alt="Билет"></div>
+          <div class="image-item"><img src="screen-10.jpg" alt="Карта навигации"></div>
+                    <div class="image-item"><img src="screen-11.jpg" alt="QR-код"></div>
+          <div class="image-item"><img src="screen-12.jpg" alt="QR-код"></div>
+        </div>
+        <div class="caption">Активное бронирование: QR-код для входа и подсказки по навигации на месте</div>
+    </div>
 
     <h2>Итог проектирования</h2>
     <p>В результате получился интерфейс, который не просто «красиво выглядит», а решает конкретную бизнес-задачу через комфорт пользователя. Мы прошли путь от хаоса поиска до технологичного решения с QR-кодами и навигацией. Этот проект научил меня видеть за каждым экраном живого человека, его страхи и потребность в контроле над ситуацией.</p>
 
-    <div class="highlight-box" style="margin-top: 36px;">
+    <div class="accent-text">
       Я создал систему, где технология берет на себя всю рутину, оставляя человеку только отдых или продуктивную работу.
     </div>
+
+    <p class="footer-cta">
+        Обсудить в <a href="https://t.me/lechatsergeev" target="_blank" class="cta-link">телеграм</a>
+    </p>
 
   </article>
 </body>
