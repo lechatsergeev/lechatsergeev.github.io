@@ -463,3 +463,31 @@ button { font: inherit; color: inherit; }
   .cmp-row { grid-template-columns: 1fr; gap: 6px; }
   .live-phone { height: 680px; }
 }
+
+/* шаги подключения календаря */
+.steps-wrap { max-width: 360px; margin: 0 auto; }
+.steps-stage { background: #fff; border-radius: 20px; padding: 22px; min-height: 190px; display: flex; flex-direction: column; gap: 10px; font-family: Onest, sans-serif; animation: pop .25s var(--ease); }
+.st-title { font-weight: 600; font-size: 16px; }
+.st-text { font-size: 14px; color: #6b6b6b; line-height: 1.4; flex: 1; word-break: break-word; }
+.st-btn, .st-again { border: 0; border-radius: 12px; padding: 12px; font: 500 15px Onest, sans-serif; background: #111; color: #fff; cursor: pointer; }
+.st-again { background: transparent; color: #111; border: 1px solid #cfcfcf; }
+.st-done { font-size: 18px; font-weight: 600; color: #2f7d4f; flex: 1; display: flex; align-items: center; }
+.steps-count { text-align: center; margin-top: 10px; font: 500 13px Onest, sans-serif; color: rgba(17,17,17,.6); }
+
+/* отчёт на фото */
+.ph { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; align-items: center; }
+.ph-photo { background: #f7f5ef; border-radius: 6px; padding: 14px; transform: rotate(-1.2deg); box-shadow: 0 14px 30px -14px rgba(0,0,0,.35); font-family: Onest, sans-serif; }
+.ph-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ph-table th, .ph-table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid #ddd8cc; }
+.ph-table th:first-child, .ph-table td:first-child { text-align: left; }
+.ph-table thead th { font-weight: 500; color: #8a8273; font-size: 11px; }
+.ph-table tr.hl-name td:first-child { background: #cfe3ff; border-radius: 4px; }
+.ph-table tr.hl-num td:not(:first-child) { background: #ffd6cc; }
+.ph-side { display: flex; flex-direction: column; gap: 10px; }
+.ph-go { border: 0; border-radius: 12px; padding: 12px; font: 500 15px Onest, sans-serif; background: #111; color: #fff; cursor: pointer; }
+.ph-out .msg { max-width: 100%; }
+@media (max-width: 760px) { .ph { grid-template-columns: 1fr; } }
+
+/* подписи под иллюстрациями — одна строка */
+.case .demo-note, .fig figcaption { text-align: center; font-size: 14px; }
+.demo-top:empty { display: none; }

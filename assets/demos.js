@@ -278,6 +278,75 @@
     });
   }
 
+  /* ---------- Демо: три версии приветствия (тексты из истории ux_chat.py) ---------- */
+  function onboardDemo(root) {
+    var log = $(root, ".chat-log");
+    var TIP = "Напиши свою сумму, например: чай 1500. Запись появится в статистике.";
+    var SKIP = "Хорошо. Просто присылай записи, когда понадобятся.";
+    var V = {
+      sep: { text: "Привет, Вика! Спасибо, что присоединился к тестированию — ты крутой 💛\n\nВместе делаем суперполезного бота для смен: он считает чаевые, вычитает расходы и помогает следить за продажами.\n\nНапиши «чай 500» или пришли фото отчёта. Если что-то неудобно или непонятно, расскажи администратору — твоя обратная связь поможет сделать бота лучше.",
+             second: "Здесь можно считать, сколько ты реально зарабатываешь на сменах.\n\nЗапишем чаевые? Отправь, например: чай 1500. Укажи свою сумму — это будет настоящая запись.", buttons: [["Пропустить", SKIP]] },
+      oct: { text: "Привет, Вика! Спасибо, что тестируешь бота вместе с нами 💛\n\nТвои смены — в одном месте\n\n💸 Чаевые и расходы → сколько осталось чистыми\n🗓 График → напоминание накануне\n📊 Статистика → итоги по неделям и месяцам\n\nС чего начнём? Можно сразу написать боту — это будет настоящая запись.",
+             buttons: [["💸 Записать чаевые", TIP], ["🗓 Как добавить график", "Пришли фото графика. Я помогу выбрать твою строку и покажу смены перед сохранением."], ["Не сейчас", SKIP]] },
+      now: { text: "Привет, Вика! Здесь можно записывать пожелания к графику, чаевые и расходы.\n\nГрафик составляет менеджер. После публикации он появится в разделе «График». Чаевые и календарь — в «Статистике».",
+             second: "Что хочешь сделать сейчас? Выбери вариант или просто пришли запись — она сразу сохранится.",
+             buttons: [["💸 Записать чаевые", TIP], ["🗓 Где мой график", "Менеджер публикует график в разделе «График». Твои смены также появляются в календаре под чаевыми."], ["Не сейчас", SKIP]] },
+    };
+    function show(k) {
+      var v = V[k]; log.innerHTML = "";
+      meSay(log, "/start");
+      var kb = v.buttons.map(function (b) { return [b[0], function (btn) {
+        btn.parentNode.querySelectorAll("button").forEach(function (x) { x.disabled = true; });
+        meSay(log, b[0]); botSay(log, b[1]); }]; });
+      if (v.second) { botSay(log, v.text, null, 250); botSay(log, v.second, kb, 600); }
+      else botSay(log, v.text, kb, 250);
+    }
+    segment(root, show); show("sep");
+  }
+
+  /* ---------- Демо: подключение календаря — пять шагов и одна кнопка ---------- */
+  function stepsDemo(root) {
+    var stage = $(root, ".steps-stage"), count = $(root, ".steps-count");
+    var OLD = [
+      ["Мини-приложение", "Кнопка под календарём", "Календарь смен"],
+      ["Календарь смен", "Ещё одна кнопка", "Подключить"],
+      ["Браузер", "Инструкция, как подписаться", "Дальше"],
+      ["Инструкция", "Ссылка в тексте", "Открыть ссылку"],
+      ["Календарь", "Добавить события?", "Добавить"],
+    ];
+    var NEW = [["Мини-приложение", "Кнопка под календарём", "Подключить iPhone"], ["Календарь", "Подписаться на смены?", "Подписаться"]];
+    var mode = "old", i = 0;
+    function draw() {
+      var list = mode === "old" ? OLD : NEW;
+      if (i >= list.length) {
+        stage.innerHTML = '<div class="st-done">✓ Смены в «Календаре»</div><button type="button" class="st-again">Ещё раз</button>';
+        stage.querySelector(".st-again").onclick = function () { i = 0; draw(); };
+        count.textContent = (mode === "old" ? 5 : 1) + (mode === "old" ? " шагов" : " нажатие");
+        return;
+      }
+      var s = list[i];
+      stage.innerHTML = '<div class="st-title">' + esc(s[0]) + '</div><div class="st-text">' + esc(s[1]) + '</div><button type="button" class="st-btn">' + esc(s[2]) + "</button>";
+      stage.querySelector(".st-btn").onclick = function () { i++; draw(); };
+      count.textContent = "шаг " + (i + 1) + " из " + list.length;
+    }
+    segment(root, function (v) { mode = v; i = 0; draw(); }); draw();
+  }
+
+  /* ---------- Демо: нейросеть читает отчёт (данные выдуманные) ---------- */
+  function photoDemo(root) {
+    var btn = $(root, ".ph-go"), out = $(root, ".ph-out"), rows = root.querySelectorAll(".ph-table tbody tr");
+    var read = false;
+    btn.onclick = function () {
+      read = !read;
+      rows.forEach(function (r) { r.classList.remove("hl-name", "hl-num"); });
+      if (read) {
+        rows[2].classList.add("hl-name"); rows[3].classList.add("hl-num");
+        out.innerHTML = '<div class="msg bot">Нашёл тебя в отчёте:\nВика · вино 14 · коктейли 9 · открытки 2\n\nВсё верно?</div>';
+        btn.textContent = "Сбросить";
+      } else { out.innerHTML = ""; btn.textContent = "Прочитать фото"; }
+    };
+  }
+
   /* ---------- Демо: смена после полуночи ---------- */
   function nightDemo(root) {
     // Одна смена 12 сентября, 22:00–01:30. Время записи — по Москве.
@@ -417,7 +486,7 @@
     draw();
   }
 
-  var DEMOS = { chat: chatDemo, wish: wishDemo, dayoff: dayoffDemo, publish: publishDemo, compare: compareDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo };
+  var DEMOS = { chat: chatDemo, wish: wishDemo, onboard: onboardDemo, steps: stepsDemo, photo: photoDemo, dayoff: dayoffDemo, publish: publishDemo, compare: compareDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo };
   document.querySelectorAll("[data-demo]").forEach(function (root) {
     var f = DEMOS[root.dataset.demo];
     if (f) try { f(root); } catch (e) { root.insertAdjacentHTML("beforeend", '<p class="demo-note">Демо не запустилось в этом браузере.</p>'); }
