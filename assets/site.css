@@ -401,3 +401,65 @@ button { font: inherit; color: inherit; }
 .compare td:first-child { font-family: Inter, sans-serif; }
 .compare tr:last-child td { border-bottom: 0; }
 .compare .off { color: #b0412e; }
+
+/* ---------- Демо в стилистике бота ---------- */
+.bot-skin { font-family: Onest, Inter, sans-serif; font-variant-numeric: tabular-nums;
+  background: linear-gradient(100deg, #EFC1DA 0%, #CEC99F 36%, #DCD6F6 66%, #B5D0D9 100%); }
+.bot-skin .demo-badge { color: rgba(17,17,17,.55); font-family: Onest, sans-serif; }
+.bot-skin .seg { background: rgba(255,255,255,.55); }
+.bot-skin .seg button { font-family: Onest, sans-serif; }
+.bot-skin .chat { background: rgba(255,255,255,.28); border: 1px solid rgba(255,255,255,.5); }
+.bot-skin .msg { font-family: Onest, sans-serif; }
+.bot-skin .msg.bot { background: #fff; color: #111; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+.bot-skin .msg.me { background: #2f7bf6; color: #fff; }
+.bot-skin .msg.bot.bad-msg { background: #fde8e4; }
+.bot-skin .msg.hint { background: rgba(255,255,255,.55); }
+.bot-skin .kb button { background: #eaf1fe; color: #2563eb; font-family: Onest, sans-serif; }
+.bot-skin .chat-form input { font-family: Onest, sans-serif; }
+.bot-skin .chat-form button { background: #111; font-family: Onest, sans-serif; }
+.bot-skin .chips button { background: rgba(255,255,255,.75); border-color: transparent; font-family: Onest, sans-serif; }
+.bot-skin .night-col, .bot-skin .cap { background: rgba(255,255,255,.82); }
+.bot-skin .day { background: rgba(17,17,17,.04); }
+.bot-skin .stat .mono, .bot-skin .day .mono { font-family: Onest, sans-serif; font-weight: 600; }
+
+/* живая вкладка «График» в рамке телефона */
+.live-phone { width: min(100%, 390px); height: 760px; margin: 0 auto; border: 9px solid #111; border-radius: 46px; overflow: hidden; background: #efc1da;
+  box-shadow: 0 30px 60px -24px rgba(0,0,0,.35); }
+.live-phone iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+/* публикация */
+.pub { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 16px; align-items: start; }
+.pub-site { background: #fff; border-radius: 18px; padding: 18px; font-family: Onest, sans-serif; }
+.pub-site h4 { margin: 0 0 2px; font-size: 16px; font-weight: 600; }
+.pub-site p { margin: 0 0 14px; font-size: 13px; color: #6b6b6b; }
+.pub-site button { display: block; width: 100%; border: 0; border-radius: 10px; padding: 12px; margin-top: 8px; font: 500 14px Onest, sans-serif; cursor: pointer; background: #111; color: #fff; }
+.pub-site button.pub-change { background: transparent; color: #111; border: 1px solid #cfcfcf; }
+.pub-site button:disabled { opacity: .35; cursor: default; }
+.pub-state { margin-top: 12px; font-size: 12px; color: #2f7d4f; min-height: 16px; }
+.pub-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 16px; font-size: 12px; text-align: center; }
+.pub-cal .wd { color: #9a9a9a; font-size: 10px; }
+.pub-cal .d { padding: 6px 0; border-radius: 8px; background: rgba(17,17,17,.04); transition: box-shadow .4s, background .4s; }
+.pub-cal .d.on { box-shadow: inset 0 0 0 1.5px #4f89ab; background: #fff; }
+.pub-cal .d.today { font-weight: 700; }
+.pub-cal .d.ch { background: #fff3c4; }
+.pub .chat { min-height: 420px; }
+
+/* ручной график и черновик */
+.cmp { background: rgba(255,255,255,.82); border-radius: 18px; padding: 18px 20px; font-family: Onest, sans-serif; }
+.cmp-row { display: grid; grid-template-columns: 200px 1fr; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(17,17,17,.08); }
+.cmp-row:last-child { border-bottom: 0; }
+.cmp-row > span { font-size: 14px; }
+.cmp-track { position: relative; height: 44px; }
+.cmp-track .bar { position: absolute; left: var(--l); width: 0; height: 14px; border-radius: 7px; transition: width .9s cubic-bezier(.2,.7,.2,1), opacity .3s; }
+.cmp.drawn .cmp-track .bar { width: var(--w); }
+.cmp-track .bar.m { top: 2px; background: #c9533d; }
+.cmp-track .bar.p { top: 26px; background: #111; }
+.cmp-track .bar i { position: absolute; left: calc(100% + 8px); top: -2px; font: 500 12px/18px Onest, sans-serif; font-style: normal; white-space: nowrap; color: #111; }
+.cmp[data-show="manual"] .bar.p, .cmp[data-show="program"] .bar.m { opacity: .12; }
+.cmp-legend { display: flex; gap: 16px; font-size: 12px; color: #6b6b6b; margin-top: 8px; }
+.cmp-legend i { display: inline-block; width: 12px; height: 6px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+@media (max-width: 760px) {
+  .pub { grid-template-columns: 1fr; }
+  .cmp-row { grid-template-columns: 1fr; gap: 6px; }
+  .live-phone { height: 680px; }
+}

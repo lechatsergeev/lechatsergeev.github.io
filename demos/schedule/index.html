@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="robots" content="noindex">
+<title>Вкладка «График» — демо</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="schedule.css">
+<style>
+  /* Оболочка мини-приложения: те же фон и шрифт, что в боте */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: #efc1da; }
+  #bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; background-color: #EFC1DA;
+    background-image: linear-gradient(90deg,#EFC1DA 0%,#EFC1DA 20%,#CEC99F 23.9%,#CEC99F 51.1%,#DCD6F6 58.9%,#DCD6F6 81.1%,#B5D0D9 85%,#B5D0D9 100%); }
+  #gradient-canvas { width: 100%; height: 100%; display: block; }
+  body { font-family: 'Onest', -apple-system, sans-serif; background: transparent; color: #111;
+    font-variant-numeric: tabular-nums; padding: 26px 22px 40px; max-width: 480px; margin: 0 auto; }
+  .tabs { display: flex; gap: 18px; margin-bottom: 22px; font-size: 15px; }
+  .tabs span { color: #6b6b6b; }
+  .tabs b { font-weight: 600; border-bottom: 2px solid #111; padding-bottom: 3px; }
+</style>
+<script>
+/* Демо для портфолио: настоящий модуль вкладки «График» из бота,
+   вместо сервера — выдуманный ресторан. Имена из презентации для коллег. */
+window.Telegram = { WebApp: { initData: "", ready: function () {}, openLink: function () {} } };
+window.selectTab = function () {};
+(function () {
+  var NAMES = ["Аня", "Боря", "Вика", "Гоша", "Даша", "Ева", "Женя", "Зоя", "Ира", "Костя", "Лёва"];
+  var ME = 2;                                            // «я» — Вика
+  var TODAY = "2026-11-16";
+  function days(a, b) { var out = [], d = new Date(a + "T12:00:00"), e = new Date(b + "T12:00:00");
+    for (; d <= e; d.setDate(d.getDate() + 1)) out.push(d.toISOString().slice(0, 10)); return out; }
+  function build(start, end, seed) {
+    var list = days(start, end);
+    var people = NAMES.map(function (name, i) { return { name: name, me: i === ME, cells: {}, off: [] }; });
+    list.forEach(function (iso, k) {
+      var wd = new Date(iso + "T12:00:00").getDay(), weekend = wd === 0 || wd === 5 || wd === 6;
+      var need = weekend ? 6 : 5;
+      // два через два со сдвигом у каждого; набираем нужное число людей
+      var on = people.map(function (p, i) { return { p: p, i: i, w: ((k + i + seed) % 4) < 2 }; })
+        .sort(function (a, b) { return (b.w - a.w) || ((a.i * 7 + k) % 11 - (b.i * 7 + k) % 11); })
+        .slice(0, need);
+      var starts = weekend ? ["10", "10", "11", "12", "12", "14"] : ["10", "11", "12", "12", "14"];
+      on.forEach(function (x, j) { x.p.cells[iso] = starts[j]; });
+    });
+    // обязательные выходные и необычные интервалы — как в презентации
+    function off(n, iso) { if (list.indexOf(iso) < 0) return; delete people[n].cells[iso]; people[n].off.push(iso); }
+    off(0, start.slice(0, 8) + (seed ? "18" : "04")); off(0, start.slice(0, 8) + (seed ? "19" : "05"));
+    off(5, list[0]); off(5, list[1]);
+    if (seed) { people[6].cells[start.slice(0, 8) + "18"] = "10-18"; people[2].cells[start.slice(0, 8) + "24"] = undefined; off(2, start.slice(0, 8) + "24"); }
+    return { start: start, end: end, days: list, people: people, events: {}, holidays: seed ? {} : { "2026-11-04": "День народного единства" } };
+  }
+  var PERIODS = { "2026-11-01": build("2026-11-01", "2026-11-15", 0), "2026-11-16": build("2026-11-16", "2026-11-30", 1) };
+  window.fetch = function (u, o) {
+    var body = {}; try { body = JSON.parse((o && o.body) || "{}"); } catch (e) {}
+    var p = PERIODS[body.start || "2026-11-16"];
+    var json = { available: true, today: TODAY, restaurant_id: 1, restaurants: [{ id: 1, name: "Ресторан" }],
+      periods: [{ start: "2026-11-01", end: "2026-11-15" }, { start: "2026-11-16", end: "2026-11-30" }],
+      period: p, can_edit: false, site_url: null,
+      mine: { requests: [{ days: ["2026-11-24"], limit: 3 }], weekdays: [], pattern: "2/2" } };
+    return Promise.resolve({ ok: true, json: function () { return Promise.resolve(json); } });
+  };
+})();
+</script>
+</head>
+<body>
+<div id="bg" aria-hidden="true"><canvas id="gradient-canvas"></canvas></div>
+<nav class="tabs" aria-hidden="true"><span>Чаевые</span><b>График</b><span>План</span></nav>
+<button id="tab-schedule" hidden></button>
+<section id="schedule-panel"></section>
+<script src="background.js"></script>
+<script src="schedule-grid.js"></script>
+<script src="schedule.js"></script>
+</body>
+</html>

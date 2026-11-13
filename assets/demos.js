@@ -183,6 +183,101 @@
     say("нужны выходные 17, 19");
   }
 
+  /* ---------- Общее для чатов бота ---------- */
+  function botSay(log, text, buttons, delay) {
+    var bot = el("div", "msg bot"); bot.textContent = text;
+    if (buttons && buttons.length) {
+      var kb = el("div", "kb");
+      buttons.forEach(function (b) { var x = el("button", "", esc(b[0])); x.type = "button"; x.onclick = function () { b[1](x); }; kb.appendChild(x); });
+      bot.appendChild(kb);
+    }
+    setTimeout(function () { log.appendChild(bot); log.scrollTop = log.scrollHeight; }, delay == null ? 300 : delay);
+    return bot;
+  }
+  function meSay(log, text) { var me = el("div", "msg me"); me.textContent = text; log.appendChild(me); log.scrollTop = log.scrollHeight; }
+
+  /* ---------- Демо: выходные одним сообщением (тексты из days_off.py) ---------- */
+  function dayoffDemo(root) {
+    var log = $(root, ".chat-log"), form = $(root, "form"), input = $(root, "input");
+    var START = 16, END = 30, LIMIT = 3;
+    var PROMPT = "График на 16–30 ноября. Напиши числа обязательных выходных. Например: 17, 24. Обязательных — 3; если нужно больше, менеджер решит, получится ли учесть эти даты.\nЕсли пожеланий нет, напиши «пожеланий нет».";
+    var saved = [];
+    function ask(again) { botSay(log, again ? "Напиши числа заново. Например: 17, 24. Обязательных — 3; если нужно больше, менеджер решит, получится ли учесть эти даты." : PROMPT, null, again ? 300 : 0); }
+    function answer(text) {
+      var t = text.toLowerCase().trim();
+      if (/^(нет|пожеланий нет|без выходных|не нужно|не надо|ничего|пропустить)[.!]?$/.test(t)) {
+        saved = []; return botSay(log, "График на 16–30 ноября. Выходные не выбраны, их расставит программа.", [["Изменить", function () { ask(true); }]]);
+      }
+      var pattern = (t.match(/\b\d\/\d\b/) || [])[0];
+      var nums = (t.replace(/\d\/\d/g, " ").match(/\b\d{1,2}\b/g) || []).map(Number);
+      if (!nums.length) {
+        if (pattern || /воскрес|суббот|понедельн/.test(t))
+          return botSay(log, "Записал пожелание" + (pattern ? ": режим " + pattern : "") + ".\n\nЭто пожелание, а не обязательный выходной: программа постарается его учесть, менеджер увидит его в графике.");
+        return botSay(log, "Не понял. Напиши числа выходных, например: 17, 24.");
+      }
+      var outside = nums.filter(function (n) { return n < START || n > END; });
+      if (outside.length) return botSay(log, "График на 16–30 ноября. Числа " + outside.join(", ") + " в него не входят. Пришли числа ещё раз.");
+      if (nums.length > 12) return botSay(log, "Больше 12 выходных за один график записать нельзя. Напиши, какие важнее, или договорись с менеджером.");
+      saved = nums.filter(function (n, i) { return nums.indexOf(n) === i; }).sort(function (a, b) { return a - b; });
+      var over = saved.length > LIMIT ? " Обязательных выходных 3, остальные — по согласованию с менеджером: он увидит всю просьбу в графике." : "";
+      botSay(log, "График на 16–30 ноября. Записал выходные: " + saved.join(", ") + " ноября." + over, [["Изменить", function (b) { b.disabled = true; ask(true); }]]);
+    }
+    function say(text) { meSay(log, text); answer(text); }
+    form.addEventListener("submit", function (ev) { ev.preventDefault(); var v = input.value.trim(); if (v) { say(v); input.value = ""; } });
+    root.querySelectorAll(".chips button").forEach(function (b) { b.addEventListener("click", function () { say(b.textContent); }); });
+    ask(false);
+  }
+
+  /* ---------- Демо: публикация (тексты из roster_api.py и jobs.py) ---------- */
+  function publishDemo(root) {
+    var log = $(root, ".chat-log"), pub = $(root, ".pub-go"), chg = $(root, ".pub-change"), cal = $(root, ".pub-cal"), state = $(root, ".pub-state");
+    var SHIFTS = [["вт", 17, 11], ["ср", 18, 12], ["сб", 21, 11], ["вс", 22, 12], ["ср", 25, 10], ["чт", 26, 12], ["вс", 29, 11], ["пн", 30, 12]];
+    var first = (new Date(2026, 10, 1).getDay() + 6) % 7;
+    function drawCal(list, changed) {
+      var html = ["пн","вт","ср","чт","пт","сб","вс"].map(function (d) { return '<span class="wd">' + d + "</span>"; }).join("");
+      for (var i = 0; i < first; i++) html += "<span></span>";
+      for (var d = 1; d <= 30; d++) {
+        var on = list.some(function (x) { return x[1] === d; });
+        html += '<span class="d' + (on ? " on" : "") + (d === 16 ? " today" : "") + (changed && changed.indexOf(d) >= 0 ? " ch" : "") + '">' + d + "</span>";
+      }
+      cal.innerHTML = html;
+    }
+    function lines(list) { return list.map(function (x) { return x[0] + " " + x[1] + " — с " + x[2]; }).join("\n"); }
+    drawCal([]);
+    log.innerHTML = '<div class="msg hint">Чат с ботом у Вики</div>';
+    pub.onclick = function () {
+      pub.disabled = true; state.textContent = "Опубликовано · 11 человек получат смены";
+      botSay(log, "Опубликован график на 16–30 ноября.\n\nТвои смены:\n" + lines(SHIFTS), null, 500);
+      setTimeout(function () { drawCal(SHIFTS); }, 900);
+      setTimeout(function () { var t = el("div", "msg hint", "16 ноября, 19:00"); log.appendChild(t); botSay(log, "Завтра у тебя смена с 11:00. Хорошего вечера!", null, 200); }, 2200);
+      setTimeout(function () { chg.disabled = false; }, 2600);
+    };
+    chg.onclick = function () {
+      chg.disabled = true;
+      var next = SHIFTS.map(function (x) { return x[1] === 21 ? ["пт", 20, 12] : x; });
+      state.textContent = "Смена Вики 21 → 20 ноября · напишем только ей";
+      botSay(log, "В графике на 16–30 ноября изменились твои смены.\n\nТвои смены:\n" + lines(next), null, 500);
+      setTimeout(function () { drawCal(next, [20]); }, 900);
+    };
+  }
+
+  /* ---------- Демо: ручной график и черновик программы ---------- */
+  function compareDemo(root) {
+    var rows = root.querySelectorAll(".cmp-row"), box = $(root, ".cmp");
+    segment(root, function (v) { box.dataset.show = v; });
+    box.dataset.show = "both";
+    if (!("IntersectionObserver" in window)) box.classList.add("drawn");
+    else { var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { box.classList.add("drawn"); io.disconnect(); } }); }, { threshold: .4 }); io.observe(box); }
+    rows.forEach(function (r) {
+      var lo = +r.dataset.min, hi = +r.dataset.max;
+      r.querySelectorAll(".bar").forEach(function (b) {
+        var a = +b.dataset.a, z = +b.dataset.b;
+        b.style.setProperty("--l", ((a - lo) / (hi - lo) * 100) + "%");
+        b.style.setProperty("--w", Math.max(1.2, (z - a) / (hi - lo) * 100) + "%");
+      });
+    });
+  }
+
   /* ---------- Демо: смена после полуночи ---------- */
   function nightDemo(root) {
     // Одна смена 12 сентября, 22:00–01:30. Время записи — по Москве.
@@ -322,7 +417,7 @@
     draw();
   }
 
-  var DEMOS = { chat: chatDemo, wish: wishDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo };
+  var DEMOS = { chat: chatDemo, wish: wishDemo, dayoff: dayoffDemo, publish: publishDemo, compare: compareDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo };
   document.querySelectorAll("[data-demo]").forEach(function (root) {
     var f = DEMOS[root.dataset.demo];
     if (f) try { f(root); } catch (e) { root.insertAdjacentHTML("beforeend", '<p class="demo-note">Демо не запустилось в этом браузере.</p>'); }
