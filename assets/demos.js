@@ -358,6 +358,29 @@
     segment(root, function (v) { box.dataset.mode = v; });
   }
 
+  /* ---------- Кофейня: история коммитов сайта (git log репозитория) ---------- */
+  function gitlogDemo(root) {
+    var LOG = [["19.11","09:23","first"],["19.11","09:27","build push"],["19.11","09:54","public"],["19.11","09:56","ordermodal",1],["19.11","10:00","ordermodal",1],["19.11","10:02","ordermodal",1],
+      ["19.11","11:45","images 1",1],["19.11","11:51","images 1",1],["19.11","11:52","images 1",1],["19.11","14:11","drip commit",1],["19.11","14:11","drip commit",1],["19.11","14:14","drip coffee commit"],
+      ["19.11","16:24","video stuff"],["19.11","16:59","css changes"],["19.11","17:56","may be broken",1],["19.11","17:57","may be broken",1],["19.11","18:10","image"],["19.11","18:26","image"],
+      ["19.11","20:00","upload a new video"],["19.11","20:11","without audio",1],["19.11","20:32","without audio",1],["19.11","20:50","[про iPhone, нецензурно — скрыто]"],
+      ["20.11","13:10","some things changed"],["20.11","14:17","some stuff comin"],["20.11","14:25","some stuff comin"],
+      ["21.11","20:07","vite changes",1],["21.11","20:20","vite changes",1],["21.11","20:29","vite changes",1],["21.11","21:38","vite changes",1],["21.11","22:02","vite changes",1],["21.11","22:05","vite changes",1],
+      ["18.12","12:15","replace wrong files",1],["18.12","12:23","new goods"],["18.12","17:16","advent"],["18.12","17:50","ordermodal",1],["18.12","18:00","ordermodal",1],["18.12","18:12","yandex"],["19.12","12:18","lasr changes"]];
+    var list = $(root, ".gl-list"), sum = $(root, ".gl-sum");
+    list.innerHTML = LOG.map(function (c, i) {
+      var day = i === 0 || LOG[i - 1][0] !== c[0] ? '<li class="gl-day">' + c[0] + "</li>" : "";
+      return day + '<li class="' + (c[3] ? "gl-fix" : "") + '"><span>' + c[1] + "</span>" + esc(c[2]) + "</li>";
+    }).join("");
+    function show(v) {
+      root.querySelector(".gl").dataset.mode = v;
+      var fixes = LOG.filter(function (c) { return c[3]; }).length;
+      var word = function (n) { return n % 10 === 1 && n % 100 !== 11 ? "коммит" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "коммита" : "коммитов"; };
+      sum.textContent = v === "fix" ? fixes + " " + word(fixes) + " — повторы той же правки и исправления" : LOG.length + " " + word(LOG.length) + ", " + LOG.filter(function (c) { return c[0] === "19.11"; }).length + " — за первый день";
+    }
+    segment(root, show); show("all");
+  }
+
   /* ---------- Кофейня: ценник с расстояния ---------- */
   function tagDemo(root) {
     var range = $(root, "input[type=range]"), tags = root.querySelectorAll(".tag-card"), label = $(root, ".tag-dist");
@@ -509,7 +532,7 @@
     draw();
   }
 
-  var DEMOS = { objections: objectionsDemo, pricetag: tagDemo, chat: chatDemo, wish: wishDemo, onboard: onboardDemo, steps: stepsDemo, photo: photoDemo, dayoff: dayoffDemo, publish: publishDemo, compare: compareDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo };
+  var DEMOS = { gitlog: gitlogDemo, objections: objectionsDemo, pricetag: tagDemo, chat: chatDemo, wish: wishDemo, onboard: onboardDemo, steps: stepsDemo, photo: photoDemo, dayoff: dayoffDemo, publish: publishDemo, compare: compareDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo };
   document.querySelectorAll("[data-demo]").forEach(function (root) {
     var f = DEMOS[root.dataset.demo];
     if (f) try { f(root); } catch (e) { root.insertAdjacentHTML("beforeend", '<p class="demo-note">Демо не запустилось в этом браузере.</p>'); }

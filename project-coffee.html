@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/site.css?v=9">
+<link rel="stylesheet" href="assets/site.css?v=10">
 </head>
 <body>
 <div class="wrap">
@@ -30,6 +30,7 @@
       <dl class="meta">
         <div><dt>Роль</dt><dd>Печатные материалы, визуал, Telegram-канал, сайт</dd></div>
         <div><dt>Сроки</dt><dd>2025, сайт — к 20 декабря</dd></div>
+        <div><dt>Код</dt><dd>Прототип в Figma Make, дальше правки через чат с нейросетью</dd></div>
         <div><dt>Условия</dt><dd>Без бюджета и команды, параллельно сменам</dd></div>
         <div><dt>Статус</dt><dd>Сайт запущен, продажи не измерялись</dd></div>
       </dl>
@@ -75,6 +76,24 @@
           <div class="live-phone"><iframe src="demos/coffee/" title="Сайт кофейни, сборка из исходников; заказ никуда не отправляется" loading="lazy"></iframe></div>
         </div>
         <p class="demo-note">Сборка сайта из исходников. Заказ отсюда никуда не уходит.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Как сайт собирался</h2>
+      <p>Первый прототип я собрал в Figma Make. Дальше правил код сам, через чат с нейросетью: не нравится первый экран — отправляю файл с ним, пишу, каким он должен быть, и вставляю ответ обратно.</p>
+      <p>Ошибок было много, сайт падал целиком. Спасали коммиты: всегда было куда откатиться.</p>
+      <div class="demo reveal" data-demo="gitlog">
+        <div class="demo-box coffee-skin">
+          <div class="demo-top">
+            <div class="seg" role="group" aria-label="Что показать">
+              <button type="button" data-value="all" aria-pressed="true">Весь журнал</button>
+              <button type="button" data-value="fix" aria-pressed="false">Где ломалось</button>
+            </div>
+          </div>
+          <div class="gl"><ul class="gl-list"></ul><p class="gl-sum"></p></div>
+        </div>
+        <p class="demo-note">Настоящая история коммитов сайта.</p>
       </div>
     </section>
 
@@ -127,7 +146,7 @@
   </footer>
 
 </div>
-<script src="assets/demos.js?v=9"></script>
-<script src="analytics.js?v=9"></script>
+<script src="assets/demos.js?v=10"></script>
+<script src="analytics.js?v=10"></script>
 </body>
 </html>

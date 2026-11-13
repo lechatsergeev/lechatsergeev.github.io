@@ -528,3 +528,14 @@ button { font: inherit; color: inherit; }
 .tag-controls { display: flex; align-items: center; gap: 14px; margin-top: 16px; font: 500 14px Inter, sans-serif; }
 .tag-controls input { flex: 1; accent-color: #FF6B35; }
 .tag-dist { min-width: 120px; text-align: right; font-family: "IBM Plex Mono", monospace; font-size: 13px; }
+/* Кофейня: история коммитов */
+.gl { background: #1e1714; color: #f3e9e1; border-radius: 16px; padding: 14px 16px; font: 13px/1.55 "IBM Plex Mono", monospace; }
+.gl-list { list-style: none; margin: 0; padding: 0; max-height: 300px; overflow-y: auto; }
+.gl-list li { display: flex; gap: 14px; padding: 1px 0; transition: opacity .25s; }
+.gl-list li span { color: #a8968a; min-width: 42px; }
+.gl-list .gl-day { color: #FF6B35; margin-top: 8px; }
+.gl-list .gl-day:first-child { margin-top: 0; }
+.gl[data-mode="fix"] .gl-list li:not(.gl-fix):not(.gl-day) { opacity: .25; }
+.gl[data-mode="fix"] .gl-list li.gl-fix { color: #ffb08f; }
+.gl-sum { margin: 10px 0 0; color: #a8968a; font-size: 12px; }
+.coffee-skin .seg button[aria-pressed="true"] { background: #FF6B35; color: #fff; box-shadow: none; }
