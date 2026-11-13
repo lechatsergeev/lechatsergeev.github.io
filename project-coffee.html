@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/site.css?v=10">
+<link rel="stylesheet" href="assets/site.css?v=11">
 </head>
 <body>
 <div class="wrap">
@@ -44,7 +44,7 @@
     </section>
 
     <section>
-      <h2>Зал</h2>
+      <h2>Заметить пачку</h2>
       <p>Гости не читали материалы, а сотрудники тратили время на объяснения. Начал с печати: меню, ценники, карточки сортов.</p>
       <p>Главное в ценнике — цена. Она стоит крупно, в цветном секторе, а название и пояснение — над ней.</p>
       <div class="demo reveal" data-demo="pricetag">
@@ -68,7 +68,27 @@
     </section>
 
     <section>
-      <h2>Сайт</h2>
+      <h2>Понять, какое это зерно</h2>
+      <p>У сорта на сайте — страна, обработка рукописным и вкус словами: цитрус, ягоды, цветы.</p>
+      <figure class="fig reveal">
+        <div class="fig-media phones">
+          <img src="site-cards-1.jpg" alt="Карточка сорта на сайте: Эфиопия, вкус и помол" loading="lazy">
+          <img src="site-cards-2.jpg" alt="Следующие карточки сортов" loading="lazy">
+        </div>
+        <figcaption>Карточки сортов на сайте.</figcaption>
+      </figure>
+      <p>Пока сайт собирался, я вёл Telegram-канал кофейни: сорта, вкус, заваривание. Посты — в стиле будущего сайта.</p>
+      <figure class="fig reveal">
+        <div class="fig-media" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:transparent">
+          <img src="social-post-1.jpg" alt="Пост в канале" loading="lazy" style="border-radius:12px">
+          <img src="social-post-2.jpg" alt="Пост в канале" loading="lazy" style="border-radius:12px">
+          <img src="social-post-3.jpg" alt="Пост в канале" loading="lazy" style="border-radius:12px">
+        </div>
+        <figcaption>Посты в той же системе, что и сайт.</figcaption>
+      </figure>
+    </section>
+    <section>
+      <h2>Выбрать помол и заказать</h2>
       <p>Перепечатывать всё было дорого, поэтому новый стиль я делал сразу на сайте. Заголовки — широким Seymour One, акценты — рукописным Caveat, оранжевый — только для действий.</p>
       <p>«Купить зерна» — первая кнопка первого экрана, раньше адресов и меню. Помол выбирается прямо в карточке.</p>
       <div class="demo reveal">
@@ -81,8 +101,9 @@
 
     <section>
       <h2>Как сайт собирался</h2>
-      <p>Первый прототип я собрал в Figma Make. Дальше правил код сам, через чат с нейросетью: не нравится первый экран — отправляю файл с ним, пишу, каким он должен быть, и вставляю ответ обратно.</p>
-      <p>Ошибок было много, сайт падал целиком. Спасали коммиты: всегда было куда откатиться.</p>
+      <p>Первый прототип я собрал в Figma Make. Дальше правил код через чат с нейросетью: отправлял файл, писал, каким должен быть экран, и вставлял ответ обратно. Сайт падал целиком, спасали коммиты.</p>
+      <details class="fold">
+        <summary>Журнал коммитов: 38, из них 22 за первый день</summary>
       <div class="demo reveal" data-demo="gitlog">
         <div class="demo-box coffee-skin">
           <div class="demo-top">
@@ -95,20 +116,9 @@
         </div>
         <p class="demo-note">Настоящая история коммитов сайта.</p>
       </div>
+      </details>
     </section>
 
-    <section>
-      <h2>Канал</h2>
-      <p>Пока сайт собирался, я вёл Telegram-канал кофейни: сорта, вкус, заваривание. Посты — в стиле будущего сайта.</p>
-      <figure class="fig reveal">
-        <div class="fig-media" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:transparent">
-          <img src="social-post-1.jpg" alt="Пост в канале" loading="lazy" style="border-radius:12px">
-          <img src="social-post-2.jpg" alt="Пост в канале" loading="lazy" style="border-radius:12px">
-          <img src="social-post-3.jpg" alt="Пост в канале" loading="lazy" style="border-radius:12px">
-        </div>
-        <figcaption>Посты в той же системе, что и сайт.</figcaption>
-      </figure>
-    </section>
 
     <section>
       <h2>Результаты</h2>
@@ -125,8 +135,8 @@
       </dl>
     </section>
 
-    <a class="next" href="project-hotel.html">
-      <span><small>Что ещё посмотреть</small><strong>Бронирование капсульного отеля</strong></span>
+    <a class="next" href="project-mazza.html">
+      <span><small>Что ещё посмотреть</small><strong>«Мацца» — замороженная римская пицца</strong></span>
       <span class="arrow" aria-hidden="true">↗</span>
     </a>
   </main>
@@ -146,7 +156,7 @@
   </footer>
 
 </div>
-<script src="assets/demos.js?v=10"></script>
-<script src="analytics.js?v=10"></script>
+<script src="assets/demos.js?v=11"></script>
+<script src="analytics.js?v=11"></script>
 </body>
 </html>

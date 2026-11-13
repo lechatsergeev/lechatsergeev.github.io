@@ -221,6 +221,7 @@
       saved = nums.filter(function (n, i) { return nums.indexOf(n) === i; }).sort(function (a, b) { return a - b; });
       var over = saved.length > LIMIT ? " Обязательных выходных 3, остальные — по согласованию с менеджером: он увидит всю просьбу в графике." : "";
       botSay(log, "График на 16–30 ноября. Записал выходные: " + saved.join(", ") + " ноября." + over, [["Изменить", function (b) { b.disabled = true; ask(true); }]]);
+      root.dispatchEvent(new CustomEvent("dayoff", { detail: saved.slice(), bubbles: true }));
     }
     function say(text) { meSay(log, text); answer(text); }
     form.addEventListener("submit", function (ev) { ev.preventDefault(); var v = input.value.trim(); if (v) { say(v); input.value = ""; } });
@@ -393,6 +394,61 @@
     range.addEventListener("input", draw); draw();
   }
 
+  /* ---------- Один процесс с двух сторон: выходные → черновик менеджера → смены ---------- */
+  function flowDemo(root) {
+    var G = window.ScheduleGrid;
+    if (!G) return;
+    var NAMES = ["Аня", "Боря", "Вика", "Гоша", "Даша", "Ева", "Женя", "Зоя", "Ира", "Костя", "Лёва"], ME = 2, LIMIT = 3;
+    var DAYS = []; for (var d = 16; d <= 30; d++) DAYS.push("2026-11-" + d);
+    var WEEK = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"];
+    var grid = $(root, ".flow-grid"), note = $(root, ".flow-note"), pub = $(root, ".flow-pub"), log = $(root, ".flow-chat .chat-log"), detail = $(root, ".flow-detail");
+    var people, published = null;
+    var need = function (iso) { var wd = new Date(iso + "T12:00:00").getDay(); return wd === 0 || wd === 5 || wd === 6 ? 6 : 5; };
+    function build(asked) {
+      people = NAMES.map(function (n, i) { return { name: n, me: i === ME, cells: {}, off: [], asked: [] }; });
+      var mine = asked.slice(0, LIMIT).map(function (x) { return "2026-11-" + x; }), extra = asked.slice(LIMIT).map(function (x) { return "2026-11-" + x; });
+      people[0].off = ["2026-11-18", "2026-11-19"]; people[5].off = ["2026-11-16", "2026-11-17"];
+      people[ME].off = mine; people[ME].asked = extra;
+      DAYS.forEach(function (iso, k) {
+        var starts = need(iso) === 6 ? ["10", "10", "11", "12", "12", "14"] : ["10", "11", "12", "12", "14"];
+        var free = people.map(function (p, i) { return { p: p, i: i, w: ((k + i + 1) % 4) < 2 }; })
+          .filter(function (x) { return x.p.off.indexOf(iso) < 0; })
+          .sort(function (a, b) { return (b.w - a.w) || ((a.i * 7 + k) % 11 - (b.i * 7 + k) % 11); })
+          .slice(0, need(iso));
+        free.forEach(function (x, j) { x.p.cells[iso] = starts[j]; });
+      });
+      published = null; draw();
+      log.innerHTML = '<div class="msg hint">Чат с ботом у Вики</div>';
+      pub.textContent = "Опубликовать"; pub.disabled = false;
+    }
+    function draw() {
+      grid.innerHTML = G.table({ days: DAYS, people: people, today: null, need: need, near: false, weekGap: true, edit: false });
+      var bad = DAYS.filter(function (iso) { return people.filter(function (p) { return G.works(G.parse(p.cells[iso])); }).length !== need(iso); }).length;
+      note.textContent = bad ? "Не хватает или лишние люди в " + bad + " " + (bad === 1 ? "дне" : "днях") + " — красное внизу" : "Во всех днях столько людей, сколько нужно";
+    }
+    function mineList() {
+      return DAYS.filter(function (iso) { return G.works(G.parse(people[ME].cells[iso])); }).map(function (iso) {
+        var dt = new Date(iso + "T12:00:00"); return WEEK[dt.getDay()] + " " + dt.getDate() + " — с " + people[ME].cells[iso];
+      });
+    }
+    grid.addEventListener("click", function (e) {
+      var c = e.target.closest("td.sg-c"); if (!c) return;
+      var p = people[+c.dataset.r], iso = c.dataset.day;
+      if (G.works(G.parse(p.cells[iso]))) { delete p.cells[iso]; detail.textContent = p.name + " · " + G.dayName(iso) + " · снята со смены"; }
+      else { p.cells[iso] = "12"; detail.textContent = p.name + " · " + G.dayName(iso) + " · поставлена с 12" + (p.off.indexOf(iso) >= 0 ? " вместо выходного" : ""); }
+      draw(); if (published) pub.disabled = false;
+    });
+    pub.addEventListener("click", function () {
+      var now = mineList().join("\n");
+      if (!published) botSay(log, "Опубликован график на 16–30 ноября.\n\nТвои смены:\n" + now, null, 400);
+      else if (published !== now) botSay(log, "В графике на 16–30 ноября изменились твои смены.\n\nТвои смены:\n" + now, null, 400);
+      else { var h = el("div", "msg hint", "Опубликовано снова. Смены Вики не изменились — ей бот не пишет"); log.appendChild(h); log.scrollTop = log.scrollHeight; }
+      published = now; pub.textContent = "Опубликовать изменения"; pub.disabled = true;
+    });
+    document.addEventListener("dayoff", function (e) { build(e.detail || []); });
+    build([]);
+  }
+
   /* ---------- Демо: смена после полуночи ---------- */
   function nightDemo(root) {
     // Одна смена 12 сентября, 22:00–01:30. Время записи — по Москве.
@@ -532,7 +588,7 @@
     draw();
   }
 
-  var DEMOS = { gitlog: gitlogDemo, objections: objectionsDemo, pricetag: tagDemo, chat: chatDemo, wish: wishDemo, onboard: onboardDemo, steps: stepsDemo, photo: photoDemo, dayoff: dayoffDemo, publish: publishDemo, compare: compareDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo };
+  var DEMOS = { flow: flowDemo, gitlog: gitlogDemo, objections: objectionsDemo, pricetag: tagDemo, chat: chatDemo, wish: wishDemo, onboard: onboardDemo, steps: stepsDemo, photo: photoDemo, dayoff: dayoffDemo, publish: publishDemo, compare: compareDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo };
   document.querySelectorAll("[data-demo]").forEach(function (root) {
     var f = DEMOS[root.dataset.demo];
     if (f) try { f(root); } catch (e) { root.insertAdjacentHTML("beforeend", '<p class="demo-note">Демо не запустилось в этом браузере.</p>'); }

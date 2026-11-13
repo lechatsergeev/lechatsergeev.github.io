@@ -8,7 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Onest:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/site.css?v=10">
+<link rel="stylesheet" href="demos/schedule/schedule.css?v=11">
+<link rel="stylesheet" href="assets/site.css?v=11">
 </head>
 <body>
 <div class="wrap">
@@ -25,8 +26,8 @@
     <div class="case-head">
       <a class="back" href="./#work">← Все работы</a>
       <h1>Бот для официантов</h1>
-      <p class="lede">Официант работает двенадцать часов на ногах. Чаевые получает наличными и переводом, смены узнаёт из графика, а выходные просит в общем чате.</p>
-      <p class="lede" style="margin-top:16px">Я официант. Летом я сделал бота, который считал мои чаевые. Теперь по нему работает график целого ресторана.</p>
+      <p class="lede">12 ноября по этому боту вышел первый рабочий график ресторана на 11 человек. Каждый получил свои смены в Телеграме, а накануне вечером — напоминание.</p>
+      <p class="lede" style="margin-top:16px">Я официант. Летом бот считал только мои чаевые. Ниже — как он вырос в график для всего зала.</p>
       <dl class="meta">
         <div><dt>Роль</dt><dd>Продукт, интерфейс, тексты, разговоры с коллегами</dd></div>
         <div><dt>Сроки</dt><dd>Февраль 2026 — сейчас</dd></div>
@@ -37,7 +38,73 @@
     </div>
 
     <section>
-      <h2>Одно сообщение</h2>
+      <h2>График</h2>
+      <p>Так график выглядит у официанта. Сверху свои смены, ниже вся команда.</p>
+      <div class="demo reveal">
+        <div class="demo-box bot-skin">
+          <div class="live-phone"><iframe src="demos/schedule/" title="Вкладка «График» мини-приложения на выдуманных данных" loading="lazy"></iframe></div>
+        </div>
+        <p class="demo-note">Настоящая вкладка из бота. Имена выдуманные.</p>
+      </div>
+      <p>Раньше менеджер собирала график по вечерам: пожелания в разных чатах, обмены теряются в переписке. Правила я записал со слов коллег: смена двенадцать часов, в будни пятеро, в выходные шестеро, закрывают трое.</p>
+    </section>
+    <section>
+      <h2>Календарь</h2>
+      <p>Я посмотрел, как коллега подключает смены к календарю iPhone. Вышло пять шагов, теперь — одна кнопка.</p>
+      <div class="cal-sum reveal">
+        <div><b>Было · 5 шагов</b><span>кнопка → ещё кнопка → инструкция в браузере → ссылка в тексте → добавить события</span></div>
+        <div><b>Стало · 1 кнопка</b><span>«Подключить iPhone» → «Подписаться»</span></div>
+      </div>
+      <div class="demo reveal" data-demo="steps">
+        <div class="demo-box bot-skin">
+          <div class="demo-top">
+            <div class="seg" role="group" aria-label="Путь">
+              <button type="button" data-value="old" aria-pressed="true">Было</button>
+              <button type="button" data-value="new" aria-pressed="false">Стало</button>
+            </div>
+          </div>
+          <div class="steps-wrap"><div class="steps-stage"></div><p class="steps-count"></p></div>
+        </div>
+        <p class="demo-note">Пройди оба пути. В календарь попадают смены, деньги — никогда.</p>
+      </div>
+    </section>
+    <section>
+      <h2>Один процесс с двух сторон</h2>
+      <p>У официанта и менеджера разные задачи в одном графике. Три экрана ниже связаны: что напишет Вика, увидит менеджер, а что опубликует менеджер, получит Вика.</p>
+      <h3 class="flow-h">1 · Вика просит выходные</h3>
+      <div class="demo reveal" data-demo="dayoff">
+        <div class="demo-box bot-skin">
+          <div class="chat">
+            <div class="chat-log" aria-live="polite"></div>
+            <form class="chat-form">
+              <label class="sr-only" for="dayoff-input">Ответ боту</label>
+              <input id="dayoff-input" autocomplete="off" placeholder="17, 24">
+              <button type="submit">Отправить</button>
+            </form>
+          </div>
+          <div class="chips">
+            <button type="button">17, 24</button>
+            <button type="button">18, 19, 20, 21</button>
+            <button type="button">3, 5</button>
+          </div>
+        </div>
+        <p class="demo-note">До трёх — предел, а не норма: попросила два — третий программа не добавит.</p>
+      </div>
+      <h3 class="flow-h">2 · Менеджер правит черновик</h3>
+      <div class="demo reveal" data-demo="flow">
+        <div class="demo-box bot-skin">
+          <div class="flow-site">
+            <div class="flow-bar"><b>16–30 ноября</b><span class="flow-note"></span><button type="button" class="flow-pub">Опубликовать</button></div>
+            <div class="sg flow-sheet"><div class="sg-scroll"><table class="flow-grid"></table></div><p class="sg-detail flow-detail">Нажми на клетку, чтобы поставить или снять смену</p></div>
+          </div>
+          <h3 class="flow-h" style="margin:22px 0 10px">3 · Вика получает смены</h3>
+          <div class="chat flow-chat"><div class="chat-log" aria-live="polite"></div></div>
+        </div>
+        <p class="demo-note">Черновик, а не готовый график: менеджер знает то, чего нет в правилах. Бот пишет только тем, чьи смены изменились.</p>
+      </div>
+    </section>
+    <section>
+      <h2>С чего началось: чаевые</h2>
       <p>В одной руке поднос, поэтому запись — одно сообщение.</p>
       <div class="demo reveal" data-demo="chat">
         <div class="demo-box bot-skin">
@@ -65,7 +132,6 @@
         <p class="demo-note">Приложение в июльской версии. Листай месяцы, открывай дни.</p>
       </div>
     </section>
-
     <section>
       <h2>Смена после полуночи</h2>
       <p>Смена кончается в два ночи. С полуночи бот разрезал её надвое, поэтому сутки в нём начинаются в шесть утра.</p>
@@ -83,7 +149,6 @@
         <p class="demo-note">С полуночи одна смена считается за две.</p>
       </div>
     </section>
-
     <section>
       <h2>Приветствие</h2>
       <p>Коллеги не понимали, с чего начать. Приветствие переписывалось вместе с ботом: от благодарности тестировщикам к одному сообщению о том, где лежит график.</p>
@@ -102,24 +167,6 @@
         <p class="demo-note">Дословно из истории бота.</p>
       </div>
     </section>
-
-    <section>
-      <h2>Календарь</h2>
-      <p>Я посмотрел, как коллега подключает смены к календарю iPhone. Вышло пять шагов, теперь — одна кнопка.</p>
-      <div class="demo reveal" data-demo="steps">
-        <div class="demo-box bot-skin">
-          <div class="demo-top">
-            <div class="seg" role="group" aria-label="Путь">
-              <button type="button" data-value="old" aria-pressed="true">Было</button>
-              <button type="button" data-value="new" aria-pressed="false">Стало</button>
-            </div>
-          </div>
-          <div class="steps-wrap"><div class="steps-stage"></div><p class="steps-count"></p></div>
-        </div>
-        <p class="demo-note">Пройди оба пути. В календарь попадают смены, деньги — никогда.</p>
-      </div>
-    </section>
-
     <section>
       <h2>Фото отчёта</h2>
       <p>Отчёт о продажах приходит фотографией. Бот читал его нейросетью и путал строки.</p>
@@ -148,64 +195,6 @@
       </div>
       <p>Ошибка в чужих деньгах хуже ручного ввода. 3 ноября от фото отказались.</p>
     </section>
-
-    <section>
-      <h2>График</h2>
-      <p>Менеджер собирает график по вечерам: пожелания в разных чатах, обмены теряются в переписке.</p>
-      <p>Я записал правила со слов коллег: смена двенадцать часов, в будни пятеро, в выходные шестеро, закрывают трое. По ним программа собирает черновик, а график делает менеджер.</p>
-      <div class="demo reveal">
-        <div class="demo-box bot-skin">
-          <div class="live-phone"><iframe src="demos/schedule/" title="Вкладка «График» мини-приложения на выдуманных данных" loading="lazy"></iframe></div>
-        </div>
-        <p class="demo-note">Настоящая вкладка «График». Нажми на дату или клетку.</p>
-      </div>
-    </section>
-
-    <section>
-      <h2>Выходные</h2>
-      <p>Перед графиком бот спрашивает выходные. Отвечают числами. Обязательных — до трёх, больше согласует менеджер.</p>
-      <div class="demo reveal" data-demo="dayoff">
-        <div class="demo-box bot-skin">
-          <div class="chat">
-            <div class="chat-log" aria-live="polite"></div>
-            <form class="chat-form">
-              <label class="sr-only" for="dayoff-input">Ответ боту</label>
-              <input id="dayoff-input" autocomplete="off" placeholder="17, 24">
-              <button type="submit">Отправить</button>
-            </form>
-          </div>
-          <div class="chips">
-            <button type="button">17, 24</button>
-            <button type="button">18, 19, 20, 21</button>
-            <button type="button">3, 5</button>
-            <button type="button">хочу 2/2</button>
-          </div>
-        </div>
-        <p class="demo-note">Ответы бота дословно из кода.</p>
-      </div>
-    </section>
-
-    <section>
-      <h2>Публикация</h2>
-      <p>Менеджер публикует график. Каждый получает свои смены, а накануне вечером — напоминание.</p>
-      <div class="demo reveal" data-demo="publish">
-        <div class="demo-box bot-skin">
-          <div class="pub">
-            <div class="pub-site">
-              <h4>16–30 ноября</h4>
-              <p>Сайт менеджера</p>
-              <button type="button" class="pub-go">Опубликовать</button>
-              <button type="button" class="pub-change" disabled>Перенести смену Вики</button>
-              <div class="pub-state" role="status"></div>
-              <div class="pub-cal" aria-label="Календарь Вики, ноябрь"></div>
-            </div>
-            <div class="chat"><div class="chat-log" aria-live="polite"></div></div>
-          </div>
-        </div>
-        <p class="demo-note">Опубликуй, потом перенеси смену: бот напишет только Вике.</p>
-      </div>
-    </section>
-
     <section>
       <h2>Запуск</h2>
       <p>8 ноября в бота позвали весь ресторан. «Нужны выходные 17, 19» бот записал как расход 17 ₽ и чаевые 19 ₽.</p>
@@ -234,7 +223,6 @@
       </div>
       <p>Исправили в тот же день. С тех пор правило: прежде чем звать людей, пройти их путь самому.</p>
     </section>
-
     <section>
       <h2>Результаты</h2>
       <p>12 ноября менеджер опубликовала первый рабочий график. Перед этим многое поправила руками — разберём на следующем.</p>
@@ -258,11 +246,10 @@
             <div class="cmp-legend"><span><i style="background:#c9533d"></i>вручную</span><span><i style="background:#111"></i>черновик</span></div>
           </div>
         </div>
-        <p class="demo-note">Короче полоса — ровнее график. Правила менеджер пока не подтвердила.</p>
+        <p class="demo-note">Отдельная проверка распределения смен. Время менеджера не измерялось.</p>
       </div>
       <p>Сколько времени это экономит менеджеру, не знаем: замера не было. Как коллеги находят график, проверим на их телефонах.</p>
     </section>
-
     <section>
       <h2>Титры</h2>
       <dl class="credits">
@@ -274,8 +261,8 @@
       </dl>
     </section>
 
-    <a class="next" href="project-mazza.html">
-      <span><small>Что ещё посмотреть</small><strong>«Мацца» — замороженная римская пицца</strong></span>
+    <a class="next" href="project-coffee.html">
+      <span><small>Что ещё посмотреть</small><strong>Зерно для «Будем Знакомы»</strong></span>
       <span class="arrow" aria-hidden="true">↗</span>
     </a>
   </main>
@@ -295,7 +282,8 @@
   </footer>
 
 </div>
-<script src="assets/demos.js?v=10"></script>
-<script src="analytics.js?v=10"></script>
+<script src="demos/schedule/schedule-grid.js?v=11"></script>
+<script src="assets/demos.js?v=11"></script>
+<script src="analytics.js?v=11"></script>
 </body>
 </html>

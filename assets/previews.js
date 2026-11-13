@@ -87,6 +87,23 @@
       await sleep(1500);
     },
 
+    // Вкладка «График»: даты встают к именам, касание клетки показывает, кто и во сколько.
+    schedule: async function (win, live) {
+      var doc = win.document;
+      var heads = doc.querySelectorAll("thead th.sg-day"), rows = doc.querySelectorAll("tbody tr");
+      if (!heads.length) return sleep(800);
+      win.scrollTo(0, 0);
+      await sleep(1600);
+      for (var k = 1; k < 5 && live(); k++) { tap(win, heads[k]); await sleep(1300); }
+      for (var r = 0; r < 3 && live(); r++) {
+        var cells = rows[r * 3 + 1] ? rows[r * 3 + 1].querySelectorAll("td.sg-c") : [];
+        if (cells[2]) { tap(win, cells[2]); await sleep(1500); }
+      }
+      if (live()) { tap(win, doc.getElementById("sg-prev")); await sleep(2200); tap(win, doc.getElementById("sg-next")); await sleep(1800); }
+      if (heads[0]) heads[0].click();
+      await sleep(800);
+    },
+
     // Товар сразу за первым экраном, потом лента приготовления со своей прокруткой.
     mazza: async function (win, live) {
       var doc = win.document;
