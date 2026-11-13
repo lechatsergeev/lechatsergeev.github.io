@@ -1,0 +1,35 @@
+
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Кофейня Будем Знакомы</title>
+      <meta name="robots" content="noindex">
+      <script>
+        /* Демо для портфолио: это сборка настоящего сайта кофейни, но заказ
+           отсюда никуда не уходит — запрос к серверу заказов подменён. */
+        (function () {
+          var real = window.fetch.bind(window);
+          window.fetch = function (u, o) {
+            if (String(u).indexOf("telegram-orders-server") !== -1)
+              return new Promise(function (r) { setTimeout(function () { r(new Response('{"ok":true}', { status: 200, headers: { "Content-Type": "application/json" } })); }, 600); });
+            return real(u, o);
+          };
+          var realAlert = window.alert.bind(window);
+          window.alert = function (m) {
+            realAlert(String(m).indexOf("Заказ принят") === 0
+              ? "Так сайт подтверждает заказ. Это демо в портфолио: заказ никуда не отправлен."
+              : m);
+          };
+        })();
+      </script>
+      <script type="module" crossorigin src="./assets/index-DWgAEOL2.js"></script>
+      <link rel="stylesheet" crossorigin href="./assets/index-BG38L4fj.css">
+    </head>
+
+    <body>
+      <div id="root"></div>
+    </body>
+  </html>
+  

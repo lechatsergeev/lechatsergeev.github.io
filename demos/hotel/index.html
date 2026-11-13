@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Капсульный отель — прототип по макету</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* Прототип собран по экранам учебного макета: у проекта нет кода,
+   поэтому это не оригинал, а его живая реконструкция. */
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Inter, sans-serif; background: #f4efe3; color: #1d1d1b; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.screen { display: none; min-height: 100vh; padding: 52px 18px 96px; flex-direction: column; }
+.screen.on { display: flex; }
+.top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.top h1 { margin: 0; font: 600 24px/1.1 "IBM Plex Mono", monospace; }
+.back { border: 0; background: none; font-size: 26px; padding: 0; }
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 18px; }
+.steps i { height: 6px; border-radius: 3px; background: #ddd5c3; }
+.steps i.on { background: #f3c95f; }
+.steps span { font-size: 9px; color: #8a8273; margin-top: 4px; display: block; }
+h2 { font: 600 17px/1.2 "IBM Plex Mono", monospace; margin: 0 0 6px; }
+.date { font-size: 13px; margin-bottom: 14px; }
+.date a, .sum a { color: #3a6fd8; }
+.card { background: #fff; border-radius: 16px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 0 rgba(0,0,0,.04); }
+.cap-head { display: flex; justify-content: space-between; align-items: center; }
+.cap-head b { font: 600 14px "IBM Plex Mono", monospace; }
+.cap-note { font-size: 12px; color: #6d675c; margin: 6px 0 0; line-height: 1.4; }
+.pick { border: 0; background: #f6d27a; border-radius: 999px; padding: 6px 16px; font-size: 13px; margin-top: 10px; }
+.card.sel { outline: 2px solid #f3c95f; }
+.grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 12px; }
+.slot { position: relative; border: 0; background: transparent; padding: 6px 0 9px; font-size: 12px; border-radius: 8px; }
+.slot::after { content: ""; position: absolute; left: 6px; right: 6px; bottom: 3px; height: 2px; border-radius: 1px; background: var(--load); }
+.slot.on { background: #f3c95f; font-weight: 600; }
+.slot.mid { background: #fbe6a6; }
+.hint { font-size: 11px; color: #6d675c; margin-top: 10px; line-height: 1.35; }
+.hint b { color: #d9634c; font-weight: 500; }
+.price { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px; }
+.price strong { font: 600 26px "IBM Plex Mono", monospace; background: #8fb4ec; color: #10223f; padding: 4px 12px; border-radius: 18px 18px 0 18px; transition: transform .25s; }
+.price strong.bump { transform: scale(1.08); }
+.price small { font-size: 11px; color: #6d675c; line-height: 1.4; }
+.bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 14px 18px 24px; display: flex; justify-content: flex-end; background: linear-gradient(transparent, #f4efe3 30%); }
+.go { border: 0; background: #f6d27a; border-radius: 999px; padding: 11px 26px; font-size: 14px; font-weight: 500; }
+.go:disabled { background: #d8d2c4; color: #8a8273; cursor: default; }
+.sum { font-size: 13px; line-height: 1.6; }
+.ask { font: 500 24px/1.25 Inter, sans-serif; margin: 6px 0 auto; }
+.skip { border: 0; background: none; color: #3a6fd8; text-decoration: underline; font-size: 13px; align-self: center; margin-top: 18px; }
+.done { text-align: center; margin: auto 0; }
+.done b { display: block; font: 600 54px "IBM Plex Mono", monospace; margin: 4px 0 10px; }
+.qr { width: 120px; height: 120px; margin: 16px auto 0; background:
+  conic-gradient(from 90deg at 30% 30%, #1d1d1b 25%, transparent 0) 0 0/24px 24px,
+  linear-gradient(#fff, #fff); border: 8px solid #1d1d1b; border-radius: 6px; }
+</style>
+</head>
+<body>
+
+<section class="screen on" id="s1">
+  <div class="top"><button class="back" aria-label="Назад">←</button><h1>Бронирование</h1></div>
+  <div class="steps"><div><i class="on"></i><span>Выбор капсулы</span></div><div><i></i><span>Будильник</span></div><div><i></i><span>Ваши данные</span></div><div><i></i><span>Оплата</span></div></div>
+  <h2>Выберите капсулу</h2>
+  <div class="date">Дата: <a href="#">28 декабря 2024</a></div>
+
+  <div class="card" data-type="single">
+    <div class="cap-head"><b>Одноместная капсула</b></div>
+    <p class="cap-note">— Багаж для одного гостя<br>— Свободно: 5 капсул<br>— Цена от 800 руб/час</p>
+    <button class="pick">Выбрать</button>
+    <div class="body" hidden>
+      <p class="cap-note" style="margin-top:12px"><b>Выберите время</b></p>
+      <div class="grid"></div>
+      <div class="price"><small>Цена меняется<br>в зависимости<br><span class="hint"><b>от загруженности отеля</b></span></small><strong>—</strong></div>
+    </div>
+  </div>
+
+  <div class="card" data-type="double">
+    <div class="cap-head"><b>Двухместная капсула</b></div>
+    <p class="cap-note">— Багаж для двух гостей<br>— Свободно: 3 капсулы<br>— Цена от 1200 руб/час</p>
+    <button class="pick">Выбрать</button>
+    <div class="body" hidden>
+      <p class="cap-note" style="margin-top:12px"><b>Выберите время</b></p>
+      <div class="grid"></div>
+      <div class="price"><small>Цена меняется<br>в зависимости<br><span class="hint"><b>от загруженности отеля</b></span></small><strong>—</strong></div>
+    </div>
+  </div>
+  <div class="bar"><button class="go" id="go1" disabled>Продолжить</button></div>
+</section>
+
+<section class="screen" id="s2">
+  <div class="top"><button class="back" data-to="s1" aria-label="Назад">←</button><h1>Бронирование</h1></div>
+  <div class="steps"><div><i class="on"></i><span>Выбор капсулы</span></div><div><i class="on"></i><span>Будильник</span></div><div><i></i><span>Ваши данные</span></div><div><i></i><span>Оплата</span></div></div>
+  <div class="card sum" id="sum2"></div>
+  <div class="card" style="flex:1;display:flex;flex-direction:column">
+    <p class="ask">Разбудить вас за <a href="#" style="color:#3a6fd8">полчаса</a> до выселения?</p>
+    <button class="skip" id="skip">Пропустить</button>
+  </div>
+  <div class="bar"><button class="go" id="wake">Разбудить</button></div>
+</section>
+
+<section class="screen" id="s3">
+  <div class="top"><button class="back" data-to="s2" aria-label="Назад">←</button><h1>Мои брони</h1></div>
+  <div class="card done">
+    Номер капсулы:
+    <b>12A</b>
+    <div class="sum" id="sum3"></div>
+    <div class="qr" aria-label="QR-код для входа"></div>
+  </div>
+  <p class="hint" style="text-align:center">Прототип по макету: дальше в оригинале — данные гостя и оплата.</p>
+</section>
+
+<script>
+(function () {
+  var hours = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
+  var load =  [0, 0, 1, 1, 0, 0, 0, 1, 2, 2, 1, 1, 1, 0, 0];
+  var PRICE = { single: [800, 1000, 1200], double: [1200, 1500, 1800] };
+  var COLORS = ["#7fbf83", "#e3b341", "#d9634c"];
+  var NAMES = { single: "одноместной капсуле", double: "двухместной капсуле" };
+  var state = { type: null, from: null, to: null, alarm: null };
+  var pad = function (h) { return String(h).padStart(2, "0") + ":00"; };
+  var rub = function (n) { return n.toLocaleString("ru-RU") + "₽"; };
+
+  document.querySelectorAll(".card[data-type]").forEach(function (card) {
+    var type = card.dataset.type, grid = card.querySelector(".grid");
+    grid.innerHTML = hours.map(function (h, i) {
+      return '<button class="slot" style="--load:' + COLORS[load[i]] + '" data-i="' + i + '">' + pad(h) + "</button>";
+    }).join("");
+    card.querySelector(".pick").onclick = function () {
+      document.querySelectorAll(".card[data-type]").forEach(function (c) {
+        var me = c === card;
+        c.classList.toggle("sel", me);
+        c.querySelector(".body").hidden = !me;
+        c.querySelector(".pick").hidden = me;
+      });
+      state = { type: type, from: null, to: null, alarm: null };
+      draw();
+    };
+    grid.onclick = function (e) {
+      var b = e.target.closest(".slot"); if (!b) return;
+      var i = +b.dataset.i;
+      if (state.from === null || state.to !== null) { state.from = i; state.to = null; }
+      else if (i < state.from) state.from = i;
+      else state.to = i;
+      draw();
+    };
+  });
+
+  function total() {
+    var end = state.to === null ? state.from : state.to, s = 0;
+    for (var i = state.from; i <= end; i++) s += PRICE[state.type][load[i]];
+    return s;
+  }
+  function range() { var end = state.to === null ? state.from : state.to; return "с " + pad(hours[state.from]) + " до " + pad(hours[end] + 1); }
+
+  function draw() {
+    var card = document.querySelector('.card[data-type="' + state.type + '"]');
+    if (!card) return;
+    var end = state.to === null ? state.from : state.to;
+    card.querySelectorAll(".slot").forEach(function (b, i) {
+      b.classList.toggle("on", i === state.from || i === state.to);
+      b.classList.toggle("mid", state.from !== null && i > state.from && i < end);
+    });
+    var price = card.querySelector(".price strong");
+    price.textContent = state.from === null ? "—" : rub(total());
+    price.classList.add("bump"); setTimeout(function () { price.classList.remove("bump"); }, 200);
+    document.getElementById("go1").disabled = state.from === null;
+  }
+
+  function summary(el) {
+    el.innerHTML = 'Отдых в <a href="#">' + NAMES[state.type] + '</a><br>Время пребывания: <a href="#">' + range() +
+      '</a><br>Дата: <a href="#">28.12.24</a>' + (state.alarm ? '<br>Будильник: <a href="#">' + state.alarm + "</a>" : "") +
+      "<br>К оплате: <b>" + rub(total()) + "</b>";
+  }
+  function show(id) { document.querySelectorAll(".screen").forEach(function (s) { s.classList.toggle("on", s.id === id); }); window.scrollTo(0, 0); }
+
+  document.getElementById("go1").onclick = function () { summary(document.getElementById("sum2")); show("s2"); };
+  function finish(alarm) {
+    var end = state.to === null ? state.from : state.to;
+    state.alarm = alarm ? String(hours[end]).padStart(2, "0") + ":30" : null;
+    summary(document.getElementById("sum3")); show("s3");
+  }
+  document.getElementById("wake").onclick = function () { finish(true); };
+  document.getElementById("skip").onclick = function () { finish(false); };
+  document.querySelectorAll("[data-to]").forEach(function (b) { b.onclick = function () { show(b.dataset.to); }; });
+})();
+</script>
+</body>
+</html>

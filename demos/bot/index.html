@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta http-equiv="Cache-Control" content="no-store">
+<title>Мой Бюджет</title>
+<script>
+/* Демо для портфолио: настоящий экран мини-приложения от 27.07.2026,
+   вместо сервера — выдуманные данные, которые считаются здесь же. */
+window.Telegram = { WebApp: { ready:function(){}, expand:function(){}, initData:"", openLink:function(){}, openTelegramLink:function(){}, close:function(){}, sendData:function(){}, HapticFeedback:{impactOccurred:function(){}} } };
+(function () {
+  var now = new Date();
+  function rnd(seed) { var x = Math.sin(seed) * 10000; return x - Math.floor(x); }
+  function monthData(y, m) {                       // m = 1..12
+    var dim = new Date(y, m, 0).getDate(), days = [], sched = [];
+    var cur = y === now.getFullYear() && m === now.getMonth() + 1;
+    var future = y > now.getFullYear() || (y === now.getFullYear() && m > now.getMonth() + 1);
+    for (var d = 1; d <= dim; d++) {
+      var work = ((d + m) % 4) < 2;                // два через два
+      var past = !future && (!cur || d <= now.getDate());
+      var r = rnd(y * 400 + m * 31 + d);
+      var tips = work && past ? Math.round((1400 + r * 3400) / 50) * 50 : 0;
+      var cash = Math.round(tips * (0.25 + rnd(d * 7 + m) * 0.3) / 50) * 50;
+      var spent = tips && rnd(d * 13 + m) > 0.55 ? Math.round((150 + rnd(d + m * 3) * 450) / 10) * 10 : 0;
+      days.push({ day: d, tips: tips, cash: cash, card: tips - cash, spent: spent });
+      if (work && (!past || (cur && d === now.getDate())))
+        sched.push(y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0"));
+    }
+    var worked = days.filter(function (x) { return x.tips > 0; });
+    return { year: y, month: m, days: days, days_in_month: dim, scheduled_shifts: sched,
+      today_day: cur ? now.getDate() : null, shifts_count: worked.length,
+      tips_total: worked.reduce(function (a, x) { return a + x.tips; }, 0),
+      has_prev: !(y === now.getFullYear() && m === now.getMonth() - 1), has_next: !future };
+  }
+  var extraSpent = 0;
+  function stats() {
+    var md = monthData(now.getFullYear(), now.getMonth() + 1);
+    var pm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    var prev = monthData(pm.getFullYear(), pm.getMonth() + 1);
+    var today = md.days[now.getDate() - 1];
+    var todayNet = today.tips - today.spent - extraSpent;
+    var week = 0;
+    for (var i = Math.max(0, now.getDate() - 7); i < now.getDate(); i++) week += md.days[i].tips - md.days[i].spent;
+    var spentMonth = md.days.reduce(function (a, x) { return a + x.spent; }, 0) + extraSpent;
+    var rec = md.days.reduce(function (a, x) { return x.tips > (a ? a.tips : 0) ? x : a; }, null);
+    var WDN = ["воскресенье","понедельник","вторник","среда","четверг","пятница","суббота"];
+    var split = [0,1,2,3,4,5,6].map(function (k) {
+      var c = 0, k2 = 0, n = 0;
+      md.days.forEach(function (x) { if (x.tips && (new Date(md.year, md.month - 1, x.day).getDay() + 6) % 7 === k) { c += x.cash; k2 += x.card; n++; } });
+      return { cash: n ? Math.round(c / n) : 0, card: n ? Math.round(k2 / n) : 0 };
+    });
+    return {
+      today_net: todayNet, week_net: week - extraSpent, month_net: md.tips_total - spentMonth,
+      total_net: 213750 + md.tips_total - spentMonth, shift_goal: 4000,
+      goal_pct: Math.max(0, Math.min(100, Math.round(today.tips / 40))),
+      vs_prev_month_pct: (function () { var pt = prev.days.slice(0, now.getDate()).reduce(function (a, x) { return a + x.tips; }, 0); return pt ? Math.round((md.tips_total / pt - 1) * 100) : null; })(),
+      shifts_count: md.shifts_count, month_tips: md.tips_total, month_days: md.days,
+      days_in_month: md.days_in_month, scheduled_shifts: md.scheduled_shifts, today_day: md.today_day,
+      has_prev: true, has_next: true, avg_tip_pct: 8.4, shift_spend_month: spentMonth,
+      record: rec ? { day: rec.day, tips: rec.tips, weekday: WDN[new Date(md.year, md.month - 1, rec.day).getDay()] } : null,
+      weekday_split: split,
+    };
+  }
+  function entries() {
+    var md = monthData(now.getFullYear(), now.getMonth() + 1), list = [], id = 1;
+    for (var i = now.getDate() - 1; i >= 0 && list.length < 25; i--) {
+      var x = md.days[i];
+      var at = new Date(md.year, md.month - 1, x.day, 23, 10).toISOString();
+      if (x.spent) list.push({ id: id++, kind: "expense", account: "cash", category: "Такси", signed_amount: -x.spent, created_at: at });
+      if (x.card) list.push({ id: id++, kind: "income", account: "card", category: "Чаевые", signed_amount: x.card, created_at: at });
+      if (x.cash) list.push({ id: id++, kind: "income", account: "cash", category: "Чаевые", signed_amount: x.cash, created_at: at });
+    }
+    return { entries: list };
+  }
+  function ok(v) { return Promise.resolve({ ok: true, status: 200, json: function () { return Promise.resolve(v); } }); }
+  window.fetch = function (u, o) {
+    u = String(u || ""); var b = {}; try { b = JSON.parse((o && o.body) || "{}"); } catch (e) {}
+    if (u.indexOf("/api/stats") !== -1) return ok(stats());
+    if (u.indexOf("/api/month") !== -1) return ok(monthData(b.year, b.month));
+    if (u.indexOf("/api/shift_spend") !== -1) { extraSpent += Number(b.amount) || 0; return ok(stats()); }
+    if (u.indexOf("/api/entries") !== -1) return ok(entries());
+    if (u.indexOf("/api/entry_edit") !== -1) return ok({ ok: true });
+    if (u.indexOf("/api/gcal") !== -1) return ok({ configured: false });
+    return Promise.resolve({ ok: false, status: 404, json: function () { return Promise.resolve({}); } });
+  };
+})();
+</script>
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;800&display=swap">
+<style>
+  :root {
+    --ink: #111111;
+    --ink-soft: #6b6b6b;
+    --faint: #cfcfcf;
+    --track: #ececec;
+    /* Синий занят одним смыслом — счёт. Количество кодируется темнотой. */
+    --cash: #a7c6dc;   /* наличка — светлее */
+    --card: #4f89ab;   /* карта — насыщеннее */
+    --paper: #ffffff;
+    /* Цифры — моноширинные: колонки сумм выравниваются сами, а знаки
+       не пляшут при обновлении значения. Текст остаётся на Inter. */
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  /* Утилита для цифр внутри обычного текста («Июль · 12 смен») */
+  .num { font-family: var(--font-mono); font-weight: 500; }
+  /* Разделитель тысяч у toLocaleString — неразрывный пробел. В моноширинном
+     он шириной с цифру и разрывает число надвое: «12  400» читается как два
+     числа. word-spacing поджимает только пробелы, цифры не трогает. */
+  .hero, .r .val, .r .tag, .pt-hero, .pt-tile .t-val, .hist-amt, .num { word-spacing: -0.3em; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: #ffffff; }
+  #bg {
+    position: fixed; inset: 0; z-index: -1;
+    background-color: #ffffff;
+    background-blend-mode: overlay, normal, normal, normal;
+    background-size: 120px 120px, auto, auto, auto;
+  }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: transparent; color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    padding: 26px 22px 40px; max-width: 480px; margin: 0 auto;
+  }
+  .head { font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 24px; }
+  .hero-label { font-size: 13px; color: var(--ink-soft); }
+  .hero { font-family: var(--font-mono); font-size: 40px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 20px; white-space: nowrap; }
+  @keyframes blurIn { from { filter: blur(12px); opacity: 0; } to { filter: blur(0); opacity: 1; } }
+  .hero.blur-in { animation: blurIn 0.85s cubic-bezier(0.2, 0.6, 0.2, 1); }
+  .r { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+  .r .lbl { font-size: 14px; white-space: nowrap; }
+  .r .tag { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--ink-soft); white-space: nowrap; }
+  .r .val { font-family: var(--font-mono); font-size: 15px; font-weight: 500; white-space: nowrap; margin-left: auto; }
+  .plan { margin: 18px 0 0; }
+  .plan .bar-track { height: 3px; background: var(--track); overflow: hidden; margin-top: 7px; }
+  .plan .bar-fill { height: 100%; background: var(--ink); width: 0; }
+  .btn { display: block; width: 100%; text-align: center; padding: 14px; border-radius: 10px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; background: var(--ink); color: #fff; margin-top: 24px; }
+  .btn:active { background: #333; }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--faint); margin-top: 10px; }
+  .btn-ghost:active { background: #f4f4f4; }
+  #err { font-size: 13px; color: #780000; padding: 16px 0; display: none; }
+
+  /* ── панель «Траты за смену» (внутри мини-апа) ── */
+  #spend { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 90; display: none; }
+  #spend.on { display: flex; align-items: flex-end; }
+  .sheet { background: #fff; width: 100%; max-width: 480px; margin: 0 auto; border-radius: 18px 18px 0 0; padding: 22px 20px 26px; }
+  .sheet-title { font-size: 17px; font-weight: 800; }
+  .sheet-sub { font-size: 13px; color: var(--ink-soft); margin: 2px 0 16px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .chip { font-size: 14px; font-weight: 600; padding: 9px 16px; border-radius: 20px; border: 1px solid var(--faint); background: #fff; cursor: pointer; font-family: inherit; color: var(--ink); }
+  .chip.sel { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .spend-inputs { display: none; gap: 8px; margin-bottom: 6px; }
+  .spend-inputs.on { display: flex; }
+  .spend-inputs input { flex: 1; min-width: 0; font-family: inherit; font-size: 15px; padding: 11px 12px; border: 1px solid var(--faint); border-radius: 10px; background: #fff; }
+  #spend-amount { font-family: var(--font-mono); }
+  .spend-inputs input:focus { outline: none; border-color: var(--ink); }
+  #spend-submit { flex: 0 0 auto; padding: 11px 16px; border-radius: 10px; border: none; background: var(--ink); color: #fff; font-weight: 600; font-family: inherit; font-size: 15px; cursor: pointer; }
+  .spend-note { font-size: 13px; color: var(--ink-soft); min-height: 18px; margin-bottom: 12px; }
+
+  /* ── разбор дня из календаря ── */
+  #day { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 92; display: none; }
+  #day.on { display: flex; align-items: flex-end; }
+  .day-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f2f2f2; }
+  .day-row:last-child { border-bottom: none; }
+  .day-row .k { font-size: 14px; color: var(--ink-soft); }
+  .day-row .v { font-family: var(--font-mono); font-size: 15px; font-weight: 500; white-space: nowrap; word-spacing: -0.3em; }
+  .day-row.total { border-top: 1px solid var(--ink); border-bottom: none; margin-top: 4px; padding-top: 12px; }
+  .day-row.total .k { color: var(--ink); font-weight: 600; font-size: 15px; }
+  .day-row.total .v { font-size: 19px; font-weight: 600; }
+  .day-note { font-size: 14px; color: var(--ink-soft); padding: 10px 0 2px; }
+
+  /* ── история и правки ── */
+  #history { position: fixed; inset: 0; background: #fff; z-index: 95; display: none; overflow-y: auto; }
+  #history.on { display: block; }
+  .hist-inner { max-width: 480px; margin: 0 auto; padding: 24px 20px 40px; }
+  .hist-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .hist-title { font-size: 18px; font-weight: 800; }
+  .hist-x { background: none; border: none; font-family: inherit; font-size: 14px; font-weight: 600; color: var(--ink-soft); cursor: pointer; }
+  .hist-item { border-bottom: 1px solid #f0f0f0; }
+  .hist-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 2px; cursor: pointer; }
+  .hist-cat { font-size: 15px; font-weight: 600; }
+  .hist-meta { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  /* Дата и время моноширинные (колонка выравнивается), название счёта — текст */
+  .hist-meta .txt { font-family: 'Inter', -apple-system, sans-serif; }
+  .hist-amt { font-family: var(--font-mono); font-size: 15px; font-weight: 600; white-space: nowrap; margin-left: 12px; }
+  .hist-edit { display: none; padding: 2px 2px 16px; }
+  .hist-item.open .hist-edit { display: block; }
+  .hist-edit-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+  .hist-edit input { flex: 1; min-width: 0; font-family: var(--font-mono); font-size: 15px; padding: 10px 12px; border: 1px solid var(--faint); border-radius: 10px; }
+  .hist-edit input:focus { outline: none; border-color: var(--ink); }
+  .acc-toggle { display: flex; gap: 6px; }
+  .acc-btn { font-size: 13px; font-weight: 600; padding: 9px 13px; border-radius: 18px; border: 1px solid var(--faint); background: #fff; cursor: pointer; font-family: inherit; color: var(--ink); }
+  .acc-btn.sel { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .hist-actions { display: flex; gap: 8px; }
+  .hist-save { flex: 1; padding: 11px; border: none; border-radius: 10px; background: var(--ink); color: #fff; font-weight: 600; font-family: inherit; font-size: 14px; cursor: pointer; }
+  .hist-del { padding: 11px 16px; border: 1px solid #e0b4b4; border-radius: 10px; background: #fff; color: #a02020; font-weight: 600; font-family: inherit; font-size: 14px; cursor: pointer; }
+  .hist-empty { font-size: 14px; color: var(--ink-soft); padding: 20px 2px; }
+
+  /* ── «Итоги месяца» (тёмный экран) ── */
+  #poster { position: fixed; inset: 0; background: #fff; color: var(--ink); z-index: 100; display: none; overflow-y: auto; }
+  #poster.on { display: block; }
+  #pt-bg { position: fixed; inset: 0; z-index: 0; background-color: #fff; background-blend-mode: overlay, normal, normal, normal; background-size: 120px 120px, auto, auto, auto; pointer-events: none; }
+  .poster-inner { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 24px 22px 40px; }
+  .pt-back-top { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; font-family: inherit; font-size: 15px; font-weight: 600; color: var(--ink); cursor: pointer; padding: 0; margin-bottom: 22px; }
+  .pt-head { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px; }
+  .pt-lbl { font-size: 15px; color: var(--ink-soft); margin-bottom: 2px; }
+  .pt-hero { font-family: var(--font-mono); font-size: 42px; font-weight: 600; letter-spacing: -0.04em; line-height: 1; margin-bottom: 6px; }
+  .pt-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0 8px; }
+  .pt-tile { background: rgba(255,255,255,0.38); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 16px; padding: 16px 18px; }
+  .pt-tile .t-lbl { font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
+  .pt-tile .t-val { font-family: var(--font-mono); font-size: 27px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; }
+  .pt-chart-title { font-size: 14px; font-weight: 600; margin: 26px 0 12px; }
+  .pt-cal { display: flex; align-items: flex-end; gap: 2px; height: 80px; }
+  .pt-cal .col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
+  .pt-wd { display: flex; align-items: flex-end; gap: 5px; height: 60px; }
+  .pt-wd .col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
+  .seg-cash { background: var(--cash); }
+  .seg-card { background: var(--card); }
+  .pt-axis { position: relative; font-size: 11px; color: var(--ink-soft); margin-top: 5px; height: 14px; }
+  .pt-axis .l { position: absolute; left: 0; }
+  .pt-axis .rt { position: absolute; right: 0; }
+  .pt-wd-labels { display: flex; gap: 5px; font-size: 11px; color: var(--ink-soft); text-align: center; margin-top: 5px; }
+  .pt-wd-labels span { flex: 1; }
+  .pt-legend { font-size: 12px; color: var(--ink-soft); margin-top: 12px; display: flex; gap: 16px; }
+  .pt-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  /* ── шапка календаря с листанием месяцев ── */
+  .cal-head { display: flex; align-items: center; justify-content: space-between; margin: 22px 0 12px; }
+  .cal-title { font-size: 14px; font-weight: 600; }
+  .cal-nav { background: none; border: none; font-family: inherit; font-size: 24px; line-height: 1; color: var(--ink); cursor: pointer; padding: 2px 14px; border-radius: 8px; }
+  .cal-nav:disabled { color: var(--faint); cursor: default; }
+  .cal-nav:active:not(:disabled) { background: rgba(0,0,0,.06); }
+  .cal-sum { font-size: 13px; color: var(--ink-soft); margin-top: 10px; min-height: 18px; }
+  .gcal-hint { font-size: 12px; line-height: 1.45; color: var(--ink-soft); margin-top: 8px; display: none; }
+  .gcal-hint.on { display: block; }
+  .cal-grid.loading { opacity: .45; }
+  .cal-wd { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 5px; }
+  .cal-wd span { font-size: 10px; color: var(--ink-soft); text-align: center; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+  .cal-cell { aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); background: rgba(255,255,255,0.35); }
+  .cal-cell.empty { background: transparent; }
+  /* Кольца поверх тёмной заливки нужно осветлять, иначе их не видно */
+  .cal-cell.shift { box-shadow: inset 0 0 0 1.5px var(--card); }
+  .cal-cell.shift.dark { box-shadow: inset 0 0 0 1.5px #9ecbe8; }
+  .cal-cell.today { box-shadow: inset 0 0 0 2px var(--ink); color: var(--ink); font-weight: 700; }
+  .cal-cell.today.dark { box-shadow: inset 0 0 0 2px #fff; color: #fff; }
+</style>
+</head>
+<body>
+  <div id="bg"></div>
+  <p class="head" id="head">Загружаю…</p>
+
+  <p class="hero-label">За неделю</p>
+  <p class="hero" id="hero-num">—</p>
+
+  <div class="r"><span class="lbl">Сегодня</span><span class="val" id="today">—</span></div>
+  <div class="r"><span class="lbl">Месяц</span><span class="tag" id="month-tag"></span><span class="val" id="month">—</span></div>
+  <div class="r"><span class="lbl">Заработал всего</span><span class="val" id="total">—</span></div>
+
+  <div class="plan" id="plan" style="display:none">
+    <div class="r" style="margin:0">
+      <span class="lbl" style="font-size:13px; color:var(--ink-soft)" id="plan-lbl">План смены</span>
+      <span class="val" style="font-size:13px" id="plan-val"></span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" id="plan-fill"></div></div>
+  </div>
+
+  <p id="err"></p>
+
+  <div class="cal-head">
+    <button class="cal-nav" id="cal-prev" aria-label="Предыдущий месяц">‹</button>
+    <span class="cal-title" id="cal-title">Календарь</span>
+    <button class="cal-nav" id="cal-next" aria-label="Следующий месяц">›</button>
+  </div>
+  <div class="cal-wd" id="cal-wd"></div>
+  <div class="cal-grid" id="cal-grid"></div>
+  <p class="cal-sum" id="cal-sum"></p>
+  <p class="pt-legend" style="margin-top:8px"><span><i style="border:1.5px solid var(--card); background:transparent"></i>смена</span></p>
+  <button class="btn btn-ghost" id="gcal-btn" style="display:none; margin-top:14px">Подключить Google Календарь</button>
+  <p class="gcal-hint" id="gcal-hint"></p>
+
+  <button class="btn" id="open-spend">Внести траты смены</button>
+  <button class="btn btn-ghost" id="open-poster">Итоги месяца</button>
+  <button class="btn btn-ghost" id="open-history">История и правки</button>
+
+  <!-- Панель трат за смену -->
+  <div id="spend">
+    <div class="sheet">
+      <p class="sheet-title">Траты за смену</p>
+      <p class="sheet-sub" id="spend-sub">Выбери категорию и укажи сумму.</p>
+      <div class="chips" id="spend-chips"></div>
+      <div class="spend-inputs" id="spend-inputs">
+        <input type="text" id="spend-name" placeholder="Название" style="display:none">
+        <input type="number" inputmode="numeric" id="spend-amount" placeholder="Сумма ₽">
+        <button id="spend-submit">Внести</button>
+      </div>
+      <p class="spend-note" id="spend-note"></p>
+      <button class="btn btn-ghost" id="spend-close" style="margin-top:0">Готово</button>
+    </div>
+  </div>
+
+  <!-- Разбор дня из календаря -->
+  <div id="day">
+    <div class="sheet">
+      <p class="sheet-title" id="day-title">—</p>
+      <div id="day-body"></div>
+      <button class="btn btn-ghost" id="day-close">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- История и правки -->
+  <div id="history">
+    <div class="hist-inner">
+      <div class="hist-top">
+        <span class="hist-title">История</span>
+        <button class="hist-x" id="hist-close">Готово</button>
+      </div>
+      <div id="hist-list"></div>
+    </div>
+  </div>
+
+  <!-- Итоги месяца -->
+  <div id="poster">
+    <div id="pt-bg"></div>
+    <div class="poster-inner">
+      <button class="pt-back-top" id="close-poster">← Назад</button>
+
+      <p class="pt-head" id="pt-head">Июль 2026</p>
+      <p class="pt-lbl">Чистыми за месяц</p>
+      <p class="pt-hero" id="pt-hero">—</p>
+
+      <div class="pt-stats">
+        <div class="pt-tile"><div class="t-lbl">Смен</div><div class="t-val" id="pt-shifts">—</div></div>
+        <div class="pt-tile"><div class="t-lbl">Средний чай</div><div class="t-val" id="pt-pct">—</div></div>
+        <div class="pt-tile"><div class="t-lbl" id="pt-rec-lbl">Рекорд смены</div><div class="t-val" id="pt-rec">—</div></div>
+        <div class="pt-tile"><div class="t-lbl">Траты смен</div><div class="t-val" id="pt-spend">—</div></div>
+      </div>
+
+      <p class="pt-chart-title">Чай за смену</p>
+      <div class="pt-cal" id="pt-cal"></div>
+      <div class="pt-axis" id="pt-axis"></div>
+
+      <p class="pt-chart-title">Дни недели</p>
+      <div class="pt-wd" id="pt-wd"></div>
+      <div class="pt-wd-labels" id="pt-wd-labels"></div>
+
+      <p class="pt-legend"><span><i style="background:var(--cash)"></i>наличка</span><span><i style="background:var(--card)"></i>карта</span></p>
+
+    </div>
+  </div>
+
+<script>
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if (tg) { tg.ready(); tg.expand(); }
+
+let lastStats = null;
+
+const MONTHS_UP = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+const MONTHS_GEN = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+const WD = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+
+function rub(v) { return Math.round(v).toLocaleString("ru-RU"); }
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+  });
+}
+
+function setHero(text) {
+  const el = document.getElementById("hero-num");
+  if (el.textContent === text) return;   // не мигаем при неизменном значении
+  el.textContent = text;
+  el.classList.remove("blur-in");
+  void el.offsetWidth;                    // форсируем reflow, чтобы анимация перезапустилась
+  el.classList.add("blur-in");
+}
+// Возвращает HTML: число моноширинным, слово — обычным шрифтом.
+// n всегда приходит числом из нашего же API, подставлять нечего.
+function shiftsWord(n) {
+  const m10 = n % 10, m100 = n % 100;
+  let word = "смен";
+  if (m10 === 1 && m100 !== 11) word = "смена";
+  else if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) word = "смены";
+  return '<span class="num">' + Number(n) + "</span> " + word;
+}
+
+// ── стек нал/карта: колонка высотой tips/max, внутри cash сверху, card снизу ──
+function stackCol(day, max, hostClass) {
+  const col = document.createElement("div");
+  col.className = "col";
+  if (day.tips > 0) {
+    col.style.height = Math.max(day.tips / max * 100, 4) + "%";
+    const total = (day.cash || 0) + (day.card || 0) || day.tips;
+    const cash = document.createElement("div");
+    cash.className = "seg-cash";
+    cash.style.height = ((day.cash || 0) / total * 100) + "%";
+    const card = document.createElement("div");
+    card.className = "seg-card";
+    card.style.height = ((day.card != null ? day.card : total) / total * 100) + "%";
+    col.appendChild(cash); col.appendChild(card);
+  }
+  return col;
+}
+
+function render(s) {
+  lastStats = s;
+  const now = new Date();
+  document.getElementById("head").innerHTML =
+    MONTHS_UP[now.getMonth()] + " · " + shiftsWord(s.shifts_count);
+  setHero(rub(s.week_net) + " ₽");
+  document.getElementById("today").textContent = rub(s.today_net);
+  document.getElementById("month").textContent = rub(s.month_net);
+  document.getElementById("total").textContent = rub(s.total_net);
+  document.getElementById("month-tag").textContent =
+    s.vs_prev_month_pct != null ? ((s.vs_prev_month_pct >= 0 ? "▲ " : "▼ ") + Math.abs(s.vs_prev_month_pct) + "%") : "";
+
+  const plan = document.getElementById("plan");
+  if (s.shift_goal) {
+    plan.style.display = "block";
+    document.getElementById("plan-lbl").innerHTML =
+      'План смены — <span class="num">' + rub(s.shift_goal) + "</span>";
+    document.getElementById("plan-val").textContent = s.goal_pct + "%";
+    document.getElementById("plan-fill").style.width = s.goal_pct + "%";
+  } else {
+    plan.style.display = "none";
+  }
+
+  // Пока человек листает прошлые месяцы, автообновление не должно
+  // выдёргивать его обратно в текущий.
+  const onCurrentMonth = calYear === null ||
+    (calYear === now.getFullYear() && calMonth === now.getMonth() + 1);
+  if (onCurrentMonth) paintCalendar(calViewFromStats(s));
+}
+
+
+// ── календарь: любой месяц, листается стрелками ──
+let calYear = null, calMonth = null;   // что сейчас на экране, month = 1..12
+
+function calViewFromStats(s) {
+  // Текущий месяц уже пришёл в /api/stats — лишний запрос не нужен.
+  const now = new Date();
+  return {
+    year: now.getFullYear(), month: now.getMonth() + 1,
+    days: s.month_days, days_in_month: s.days_in_month,
+    scheduled_shifts: s.scheduled_shifts, today_day: s.today_day,
+    shifts_count: s.shifts_count, tips_total: s.month_tips,
+    has_prev: s.has_prev, has_next: s.has_next,
+  };
+}
+
+function paintCalendar(view) {
+  calYear = view.year;
+  calMonth = view.month;
+
+  document.getElementById("cal-title").textContent =
+    MONTHS_UP[view.month - 1] + " " + view.year;
+  document.getElementById("cal-prev").disabled = !view.has_prev;
+  document.getElementById("cal-next").disabled = !view.has_next;
+
+  const firstDow = (new Date(view.year, view.month - 1, 1).getDay() + 6) % 7; // Пн=0
+  const shiftDays = new Set((view.scheduled_shifts || []).map(function (d) {
+    return parseInt(d.slice(8, 10), 10);
+  }));
+  const vmax = Math.max.apply(null, view.days.map(function (d) { return d.tips; }).concat([1]));
+
+  document.getElementById("cal-wd").innerHTML =
+    WD.map(function (x) { return "<span>" + x + "</span>"; }).join("");
+  const grid = document.getElementById("cal-grid");
+  grid.innerHTML = "";
+  for (let i = 0; i < firstDow; i++) {
+    const b = document.createElement("div");
+    b.className = "cal-cell empty";
+    grid.appendChild(b);
+  }
+  view.days.forEach(function (d) {
+    const cell = document.createElement("div");
+    cell.className = "cal-cell";
+    cell.textContent = d.day;
+    if (d.tips > 0) {
+      // Количество кодируем темнотой, а не цветом: цвет в этом приложении
+      // занят счётом (нал/карта), и синяя шкала спорила и с рамкой смены,
+      // и с фоном. Нейтральный графит не конфликтует ни с чем.
+      const alpha = 0.12 + 0.76 * (d.tips / vmax);
+      cell.style.background = "rgba(17,17,17," + alpha.toFixed(2) + ")";
+      const dark = alpha > 0.55;
+      cell.style.color = dark ? "#fff" : "var(--ink)";
+      if (dark) cell.classList.add("dark");   // кольца поверх тёмной заливки
+      cell.style.fontWeight = "600";
+      cell.title = d.day + ": " + rub(d.tips) + " ₽";
+    }
+    if (shiftDays.has(d.day)) cell.classList.add("shift");
+    if (d.day === view.today_day) cell.classList.add("today");   // null в чужих месяцах
+
+    // Кликабельны дни, где есть что показать: был чай, были траты
+    // или смена стоит в графике.
+    if (d.tips > 0 || (d.spent || 0) > 0 || shiftDays.has(d.day)) {
+      cell.style.cursor = "pointer";
+      cell.onclick = function () { openDay(view, d); };
+    }
+    grid.appendChild(cell);
+  });
+
+  const sum = document.getElementById("cal-sum");
+  const planned = (view.scheduled_shifts || []).length;
+  if (view.shifts_count) {
+    sum.innerHTML = shiftsWord(view.shifts_count) +
+      ' · <span class="num">' + rub(view.tips_total) + "</span> ₽ чая";
+  } else if (planned) {
+    // Месяц вперёд: чая ещё нет, но смены уже поставлены
+    sum.innerHTML = "Запланировано " + shiftsWord(planned);
+  } else {
+    sum.textContent = "Смен не было";
+  }
+}
+
+// ── разбор одного дня ──
+const WD_FULL = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"];
+
+function dayRow(k, v, total) {
+  return '<div class="day-row' + (total ? " total" : "") + '">' +
+    '<span class="k">' + k + '</span><span class="v">' + v + "</span></div>";
+}
+
+function openDay(view, d) {
+  const dt = new Date(view.year, view.month - 1, d.day);
+  const wd = WD_FULL[(dt.getDay() + 6) % 7];
+  document.getElementById("day-title").textContent =
+    wd.charAt(0).toUpperCase() + wd.slice(1) + ", " + d.day + " " + MONTHS_GEN[view.month - 1];
+
+  const spent = d.spent || 0;
+  const rows = [];
+  if (d.tips > 0) {
+    rows.push(dayRow("Чай", rub(d.tips) + " ₽"));
+    if (d.cash > 0 && d.card > 0) {
+      rows.push(dayRow("наличными", rub(d.cash) + " ₽"));
+      rows.push(dayRow("картой", rub(d.card) + " ₽"));
+    } else if (d.cash > 0) {
+      rows.push(dayRow("всё наличными", rub(d.cash) + " ₽"));
+    } else if (d.card > 0) {
+      rows.push(dayRow("всё картой", rub(d.card) + " ₽"));
+    }
+  }
+  // Итог показываем, только если есть что вычитать: без трат он дословно
+  // повторял бы строку «Чай».
+  if (spent > 0) {
+    rows.push(dayRow("Траты смены", "−" + rub(spent) + " ₽"));
+    rows.push(dayRow("Чистыми за смену", rub(d.tips - spent) + " ₽", true));
+  }
+
+  document.getElementById("day-body").innerHTML = rows.length
+    ? rows.join("")
+    : '<p class="day-note">Смена в графике, записей пока нет.</p>';
+  document.getElementById("day").classList.add("on");
+}
+
+document.getElementById("day-close").onclick = function () {
+  document.getElementById("day").classList.remove("on");
+};
+document.getElementById("day").addEventListener("click", function (e) {
+  if (e.target.id === "day") this.classList.remove("on");
+});
+
+function loadMonth(year, month) {
+  const grid = document.getElementById("cal-grid");
+  grid.classList.add("loading");
+  fetch("/api/month", {
+    method: "POST", headers: { "Content-Type": "application/json" }, cache: "no-store",
+    body: JSON.stringify({ initData: tg ? tg.initData : "", year: year, month: month }),
+  })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(paintCalendar)
+    .catch(function (e) {
+      document.getElementById("cal-sum").textContent = "Не смог загрузить месяц (" + e.message + ")";
+    })
+    .then(function () { grid.classList.remove("loading"); });
+}
+
+function calStep(delta) {
+  if (calYear === null) return;
+  let y = calYear, m = calMonth + delta;
+  if (m < 1) { m = 12; y -= 1; }
+  if (m > 12) { m = 1; y += 1; }
+  loadMonth(y, m);
+}
+
+document.getElementById("cal-prev").onclick = function () { calStep(-1); };
+document.getElementById("cal-next").onclick = function () { calStep(1); };
+
+function renderPoster(s) {
+  if (!s) return;
+  const now = new Date();
+  document.getElementById("pt-head").textContent = MONTHS_UP[now.getMonth()] + " " + now.getFullYear();
+  document.getElementById("pt-hero").textContent = rub(s.month_net) + " ₽";
+  document.getElementById("pt-shifts").textContent = s.shifts_count;
+  document.getElementById("pt-pct").textContent =
+    s.avg_tip_pct != null ? String(s.avg_tip_pct).replace(".", ",") + "%" : "—";
+  if (s.record) {
+    document.getElementById("pt-rec-lbl").innerHTML =
+      "Рекорд · " + esc(s.record.weekday).toLowerCase() +
+      ' <span class="num">' + Number(s.record.day) + "</span>";
+    document.getElementById("pt-rec").textContent = rub(s.record.tips);
+  } else {
+    document.getElementById("pt-rec-lbl").textContent = "Рекорд смены";
+    document.getElementById("pt-rec").textContent = "—";
+  }
+  document.getElementById("pt-spend").textContent =
+    s.shift_spend_month > 0 ? "−" + rub(s.shift_spend_month) : "0";
+
+  // Календарь смен, стек нал/карта
+  const cal = document.getElementById("pt-cal");
+  cal.innerHTML = "";
+  const vmax = Math.max.apply(null, s.month_days.map(function (d) { return d.tips; }).concat([1]));
+  s.month_days.forEach(function (d) { cal.appendChild(stackCol(d, vmax)); });
+  document.getElementById("pt-axis").innerHTML =
+    '<span class="l"><span class="num">1</span> ' + MONTHS_GEN[now.getMonth()] +
+    '</span><span class="rt num">' + Number(s.days_in_month) + '</span>';
+
+  // Дни недели, стек нал/карта
+  const wd = document.getElementById("pt-wd");
+  wd.innerHTML = "";
+  const split = s.weekday_split || [];
+  const wmax = Math.max.apply(null, split.map(function (x) { return (x.cash || 0) + (x.card || 0); }).concat([1]));
+  split.forEach(function (x) {
+    const total = (x.cash || 0) + (x.card || 0);
+    wd.appendChild(stackCol({ tips: total, cash: x.cash, card: x.card }, wmax));
+  });
+  document.getElementById("pt-wd-labels").innerHTML =
+    WD.map(function (d) { return "<span>" + d + "</span>"; }).join("");
+}
+
+// ── загрузка статистики ──
+function applyStats(s) {
+  document.getElementById("err").style.display = "none";
+  render(s);
+  if (document.getElementById("poster").classList.contains("on")) renderPoster(s);
+}
+function load() {
+  fetch("/api/stats?t=" + Date.now(), {
+    method: "POST", headers: { "Content-Type": "application/json" }, cache: "no-store",
+    body: JSON.stringify({ initData: tg ? tg.initData : "" }),
+  })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(applyStats)
+    .catch(function (e) {
+      const el = document.getElementById("err");
+      el.style.display = "block";
+      el.textContent = "Не смог загрузить данные. Открой мини-ап из чата с ботом. (" + e.message + ")";
+      document.getElementById("head").textContent = "Мой Бюджет";
+    });
+}
+
+// ── панель трат за смену ──
+const SPEND_CATS = ["Мойка", "Бар", "Еда", "Такси", "Своя"];
+let spendCat = null;
+
+function buildChips() {
+  const box = document.getElementById("spend-chips");
+  box.innerHTML = "";
+  SPEND_CATS.forEach(function (c) {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.textContent = c === "Своя" ? "+ Своя" : c;
+    b.onclick = function () {
+      spendCat = c;
+      [...box.children].forEach(function (x) { x.classList.remove("sel"); });
+      b.classList.add("sel");
+      document.getElementById("spend-inputs").classList.add("on");
+      const name = document.getElementById("spend-name");
+      name.style.display = c === "Своя" ? "block" : "none";
+      document.getElementById("spend-note").textContent = "";
+      (c === "Своя" ? name : document.getElementById("spend-amount")).focus();
+    };
+    box.appendChild(b);
+  });
+}
+function openSpend() {
+  spendCat = null;
+  buildChips();
+  document.getElementById("spend-inputs").classList.remove("on");
+  document.getElementById("spend-amount").value = "";
+  document.getElementById("spend-name").value = "";
+  document.getElementById("spend-note").textContent = "";
+  document.getElementById("spend").classList.add("on");
+}
+function submitSpend() {
+  const amount = parseFloat(document.getElementById("spend-amount").value);
+  if (!amount || amount <= 0) {
+    document.getElementById("spend-note").textContent = "Введи сумму.";
+    return;
+  }
+  let category = spendCat;
+  if (spendCat === "Своя") category = document.getElementById("spend-name").value.trim() || "Прочее";
+  document.getElementById("spend-note").textContent = "Записываю…";
+  fetch("/api/shift_spend", {
+    method: "POST", headers: { "Content-Type": "application/json" }, cache: "no-store",
+    body: JSON.stringify({ initData: tg ? tg.initData : "", category: category, amount: amount }),
+  })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function (s) {
+      applyStats(s);
+      document.getElementById("spend-note").textContent = "➖ " + category + " " + rub(amount) + " ₽ записал";
+      document.getElementById("spend-amount").value = "";
+      document.getElementById("spend-name").value = "";
+    })
+    .catch(function (e) { document.getElementById("spend-note").textContent = "Не вышло записать (" + e.message + ")"; });
+}
+
+document.getElementById("open-spend").onclick = openSpend;
+document.getElementById("spend-submit").onclick = submitSpend;
+document.getElementById("spend-amount").addEventListener("keydown", function (e) { if (e.key === "Enter") submitSpend(); });
+document.getElementById("spend-close").onclick = function () { document.getElementById("spend").classList.remove("on"); };
+document.getElementById("spend").addEventListener("click", function (e) {
+  if (e.target.id === "spend") this.classList.remove("on");
+});
+
+let gcalAuthUrl = null;
+function gcalRefresh() {
+  const btn = document.getElementById("gcal-btn");
+  fetch("/api/gcal", {
+    method: "POST", headers: { "Content-Type": "application/json" }, cache: "no-store",
+    body: JSON.stringify({ initData: tg ? tg.initData : "" }),
+  })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (s) {
+      const hint = document.getElementById("gcal-hint");
+      if (!s || !s.configured) { btn.style.display = "none"; hint.classList.remove("on"); return; }
+      btn.style.display = "block";
+      gcalAuthUrl = s.auth_url;
+      if (s.connected) {
+        btn.textContent = "✓ Google Календарь подключён";
+        btn.style.color = "var(--card)";
+        btn.style.borderColor = "var(--card)";
+        hint.classList.remove("on");
+      } else {
+        btn.textContent = "Подключить Google Календарь";
+        btn.style.color = "";
+        btn.style.borderColor = "";
+        // Пока Google не проверил приложение, доступ выдаётся вручную.
+        // Честнее сказать это здесь, чем показать ошибку Google после клика.
+        if (s.invite_only) {
+          hint.textContent = "Google ещё не проверил приложение, поэтому " +
+            "подключение открывается вручную. Напиши" +
+            (s.support ? " " + s.support : " автору бота") +
+            " — добавлю тебя, и кнопка заработает.";
+          hint.classList.add("on");
+        } else {
+          hint.classList.remove("on");
+        }
+      }
+    })
+    .catch(function () {});
+}
+document.getElementById("gcal-btn").onclick = function () {
+  if (gcalAuthUrl && tg) tg.openLink(gcalAuthUrl);  // внешний браузер: Google блокирует OAuth в вебвью
+};
+
+document.getElementById("open-poster").onclick = function () {
+  renderPoster(lastStats);
+  document.getElementById("poster").classList.add("on");
+  window.scrollTo(0, 0);
+};
+document.getElementById("close-poster").onclick = function () {
+  document.getElementById("poster").classList.remove("on");
+};
+
+// ── история и правки ──
+let histEntries = [];
+
+function accLabel(a) { return a === "cash" ? "Наличные" : "Карта"; }
+function fmtDT(iso) {
+  return new Date(iso).toLocaleString("ru-RU", {
+    timeZone: "Europe/Moscow", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
+  }).replace(",", "");
+}
+
+function renderHistory() {
+  const list = document.getElementById("hist-list");
+  list.innerHTML = "";
+  if (!histEntries.length) { list.innerHTML = '<p class="hist-empty">Пока пусто.</p>'; return; }
+  histEntries.forEach(function (e) {
+    const amt = Math.abs(e.signed_amount);
+    const income = e.kind === "income";
+    const item = document.createElement("div");
+    item.className = "hist-item";
+    item.innerHTML =
+      '<div class="hist-row">' +
+        '<div><div class="hist-cat">' + esc(e.category) + '</div>' +
+        '<div class="hist-meta">' + fmtDT(e.created_at) +
+          ' · <span class="txt">' + accLabel(e.account) + '</span></div></div>' +
+        '<div class="hist-amt">' + (income ? "+" : "−") + rub(amt) + ' ₽</div>' +
+      '</div>' +
+      '<div class="hist-edit">' +
+        '<div class="hist-edit-row">' +
+          '<input type="number" inputmode="numeric" class="hist-amt-input" value="' + amt + '">' +
+          '<div class="acc-toggle">' +
+            '<button class="acc-btn" data-acc="cash">Нал</button>' +
+            '<button class="acc-btn" data-acc="card">Карта</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="hist-actions">' +
+          '<button class="hist-save">Сохранить</button>' +
+          '<button class="hist-del">Удалить</button>' +
+        '</div>' +
+      '</div>';
+
+    item.querySelector(".hist-row").onclick = function () {
+      const wasOpen = item.classList.contains("open");
+      [].forEach.call(list.children, function (c) { c.classList.remove("open"); });
+      if (!wasOpen) item.classList.add("open");
+    };
+
+    let selAcc = e.account;
+    const accBtns = item.querySelectorAll(".acc-btn");
+    function paintAcc() { [].forEach.call(accBtns, function (b) { b.classList.toggle("sel", b.dataset.acc === selAcc); }); }
+    paintAcc();
+    [].forEach.call(accBtns, function (b) { b.onclick = function () { selAcc = b.dataset.acc; paintAcc(); }; });
+
+    item.querySelector(".hist-save").onclick = function () {
+      const newAmt = parseFloat(item.querySelector(".hist-amt-input").value);
+      const tasks = [];
+      if (newAmt > 0 && newAmt !== amt) tasks.push({ action: "amount", amount: newAmt });
+      if (selAcc !== e.account) tasks.push({ action: "account", account: selAcc });
+      if (!tasks.length) { item.classList.remove("open"); return; }
+      chainEdits(e.id, tasks);
+    };
+    item.querySelector(".hist-del").onclick = function () { editEntry(e.id, { action: "delete" }); };
+
+    list.appendChild(item);
+  });
+}
+
+function editEntry(id, payload, silent) {
+  return fetch("/api/entry_edit", {
+    method: "POST", headers: { "Content-Type": "application/json" }, cache: "no-store",
+    body: JSON.stringify(Object.assign({ initData: tg ? tg.initData : "", entry_id: id }, payload)),
+  })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function (resp) {
+      if (!silent) { histEntries = resp.entries; applyStats(resp.stats); renderHistory(); }
+      return resp;
+    })
+    .catch(function (err) {
+      document.getElementById("hist-list").insertAdjacentHTML("afterbegin",
+        '<p class="hist-empty">Не вышло: ' + err.message + '</p>');
+      return null;
+    });
+}
+
+function chainEdits(id, tasks) {
+  let p = Promise.resolve(null);
+  tasks.forEach(function (t) { p = p.then(function () { return editEntry(id, t, true); }); });
+  p.then(function (resp) {
+    if (resp) { histEntries = resp.entries; applyStats(resp.stats); renderHistory(); }
+  });
+}
+
+function openHistory() {
+  document.getElementById("history").classList.add("on");
+  window.scrollTo(0, 0);
+  document.getElementById("hist-list").innerHTML = '<p class="hist-empty">Загружаю…</p>';
+  fetch("/api/entries", {
+    method: "POST", headers: { "Content-Type": "application/json" }, cache: "no-store",
+    body: JSON.stringify({ initData: tg ? tg.initData : "" }),
+  })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function (resp) { histEntries = resp.entries; renderHistory(); })
+    .catch(function (err) {
+      document.getElementById("hist-list").innerHTML =
+        '<p class="hist-empty">Не смог загрузить (' + err.message + ')</p>';
+    });
+}
+
+document.getElementById("open-history").onclick = openHistory;
+document.getElementById("hist-close").onclick = function () {
+  document.getElementById("history").classList.remove("on");
+};
+
+// ── анимированный mesh-градиент «Bloom Field» (21st.dev) ──
+(function () {
+  const bgEl = document.getElementById("bg");
+  const ptBg = document.getElementById("pt-bg");
+  if (!bgEl) return;
+  const NOISE = "url(\"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.305'/></svg>\")";
+  function phase(n) { const x = Math.sin(n) * 43758.5453; return (x - Math.floor(x)) * Math.PI * 2; }
+  const SEED = 1;
+  // Насыщенность фона. 1 — исходный бледный вариант, больше — ярче.
+  // Крутится одним числом: остальные значения ниже подобраны под форму пятен,
+  // а не под яркость, и трогать их не надо.
+  const GLOW = 1.5;
+  // Радиусы крупные намеренно: пятна должны смыкаться и закрывать экран
+  // целиком, иначе середина и низ остаются голой бумагой. Четвёртое пятно
+  // держит правый нижний угол, куда не дотягивались первые три.
+  const blobs = [
+    { rgb: "232,166,128", x: 66.0, y: 40.0, r: 72, peak: 0.46 },
+    { rgb: "156,199,250", x: 18.0, y: 74.0, r: 76, peak: 0.30 },
+    { rgb: "250,249,239", x: 50.0, y: 10.0, r: 88, peak: 0.56 },
+    { rgb: "226,178,143", x: 88.0, y: 96.0, r: 66, peak: 0.34 },
+  ].map(function (b, i) {
+    b.peak = Math.min(b.peak * GLOW, 1);
+    b.p1 = phase(SEED * 12.9898 + i * 78.233);
+    b.p2 = phase(SEED * 39.346 + i * 11.135);
+    return b;
+  });
+  function rg(b, cx, cy) {
+    const a = b.peak;
+    return "radial-gradient(circle at " + cx + "% " + cy + "%, " +
+      "rgba(" + b.rgb + "," + a + ") 0%, " +
+      "rgba(" + b.rgb + "," + (a * 0.844) + ") " + (b.r * 0.25) + "%, " +
+      "rgba(" + b.rgb + "," + (a * 0.5) + ") " + (b.r * 0.5) + "%, " +
+      "rgba(" + b.rgb + "," + (a * 0.156) + ") " + (b.r * 0.75) + "%, " +
+      "rgba(" + b.rgb + ",0) " + b.r + "%)";
+  }
+  function paint(ph) {
+    const amt = 0.72;
+    const layers = blobs.map(function (b) {
+      const cx = b.x + (Math.sin(ph * 0.55 + b.p1) - Math.sin(b.p1)) * 14 * amt;
+      const cy = b.y + (Math.sin(ph * 0.43 + b.p2) - Math.sin(b.p2)) * 14 * amt;
+      return rg(b, cx, cy);
+    });
+    const img = NOISE + "," + layers.join(",");
+    bgEl.style.backgroundImage = img;
+    if (ptBg) ptBg.style.backgroundImage = img;
+  }
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) { paint(0); return; }
+  const start = performance.now();
+  (function frame(now) { paint((now - start) / 1000 * 0.86); requestAnimationFrame(frame); })(start);
+})();
+
+load();
+gcalRefresh();
+setInterval(load, 60000);
+document.addEventListener("visibilitychange", function () {
+  if (document.hidden) return;
+  load();
+  gcalRefresh();
+});
+</script>
+</body>
+</html>
