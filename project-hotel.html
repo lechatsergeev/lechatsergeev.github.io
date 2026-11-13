@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/site.css?v=8">
+<link rel="stylesheet" href="assets/site.css?v=9">
 </head>
 <body>
 <div class="wrap">
@@ -25,7 +25,8 @@
     <div class="case-head">
       <a class="back" href="./#work">← Все работы</a>
       <h1>Бронирование капсульного отеля</h1>
-      <p class="lede">Задание в школе Бюро Горбунова: интерфейс брони капсулы в отеле при аэропорте. Гость уставший и спешит, поэтому бронь должна проходиться быстро, а будильник — не дать проспать рейс.</p>
+      <p class="lede">Задание школы Бюро Горбунова: бронь капсулы в отеле при аэропорте. Гость уставший и спешит, а утром у него рейс.</p>
+      <p class="lede" style="margin-top:16px">Я сделал приложение, а не сайт: QR-код от капсулы открывается без связи, и можно прислать пуш, когда пора вставать.</p>
       <dl class="meta">
         <div><dt>Тип</dt><dd>Учебный проект, макет без разработки</dd></div>
         <div><dt>Роль</dt><dd>Сценарий и интерфейс</dd></div>
@@ -35,104 +36,96 @@
     </div>
 
     <section>
-      <h2>Приложение, а не сайт</h2>
-      <p>Я выбрал приложение: оно даёт офлайн-доступ к QR-коду, которым открывается капсула, и умеет присылать пуши. Для аэропорта это важнее, чем удобство сайта без установки.</p>
+      <h2>Прототип</h2>
+      <p>Кода у проекта нет. Чтобы бронь можно было пройти, я собрал прототип по экранам макета.</p>
+      <div class="demo reveal">
+        <div class="demo-box" style="background:#f3ecdc">
+          <div class="live-phone" style="background:#f4efe3"><iframe src="demos/hotel/" title="Прототип брони капсулы по экранам макета" loading="lazy"></iframe></div>
+        </div>
+        <p class="demo-note">Выбери капсулу и время — цена сложится на глазах.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Вход</h2>
+      <p>Главный экран отвечает на вопрос «где я?» и предлагает одно действие. Пустой раздел броней — не тупик: в нём та же кнопка.</p>
       <figure class="fig reveal">
         <div class="fig-media phones">
-          <img src="screen-1.jpg" alt="Главный экран: где я и кнопка брони" loading="lazy">
+          <img src="screen-1.jpg" alt="Главный экран: капсульный отель в аэропорту Сочи" loading="lazy">
           <img src="screen-2.jpg" alt="Пустой раздел «Мои брони» с кнопкой брони" loading="lazy">
         </div>
-        <figcaption>Главный экран отвечает на «где я?» и даёт одно действие. Пустой раздел броней не тупик: в нём та же кнопка.</figcaption>
+        <figcaption>Главный экран и пустые брони.</figcaption>
       </figure>
     </section>
 
     <section>
-      <h2>Цена складывается на глазах</h2>
-      <p>Капсул две: одноместная и двухместная. После выбора появляется полотно времени с тремя слоями: часы, загрузка отеля и цена. Цена появляется, когда гость выбрал время, — так видно, из чего получилась сумма.</p>
-      <div class="demo reveal" data-demo="hotel">
-        <div class="demo-box" style="background:#f3ecdc">
-          <div class="demo-top">
-            <span class="demo-badge">Демо по экрану выбора времени</span>
-            <div class="seg" role="group" aria-label="Тип капсулы">
-              <button type="button" data-value="single" aria-pressed="true">Одноместная</button>
-              <button type="button" data-value="double" aria-pressed="false">Двухместная</button>
-            </div>
-          </div>
-          <div class="slots">
-            <h4>Выберите время</h4>
-            <div class="sub">28 декабря · нажмите начало, потом конец</div>
-            <div class="slot-grid"></div>
-            <div class="slots-legend"><span><i style="background:#8bc28c"></i>свободно</span><span><i style="background:#e3b341"></i>средне</span><span><i style="background:#d9634c"></i>плотно</span></div>
-            <div class="price-box"></div>
-          </div>
-        </div>
-        <p class="demo-note"><b>Попробуй</b> выбрать 17:00 и 19:00 — выйдет 3 000 ₽, как на экране макета. Потом сдвинь начало на 15:00: часы пик дороже. Цены по часам — допущение для демо.</p>
-      </div>
-      <p>Сверху — путь из четырёх шагов: короткий счётчик даёт ощущение, что бронь простая.</p>
-    </section>
-
-    <section>
-      <h2>Будильник можно пропустить, но удобно поставить</h2>
-      <p>Кнопка «Разбудить» стоит на месте «Продолжить» с прошлого экрана: палец уже там. «Пропустить» — ссылка ниже. Время выбирается стандартным барабаном iOS, его не надо изучать.</p>
+      <h2>Капсула и время</h2>
+      <p>Капсул две: одноместная и двухместная. Время выбирается на полотне, где видна загрузка отеля, а цена появляется сразу после выбора — видно, из чего она сложилась.</p>
+      <p>Сверху путь из четырёх шагов, чтобы бронь ощущалась простой.</p>
       <figure class="fig reveal">
         <div class="fig-media phones">
-          <img src="screen-4.jpg" alt="Выбор времени, кнопка «Продолжить»" loading="lazy">
-          <img src="screen-5.jpg" alt="Вопрос про будильник, кнопка «Разбудить» на том же месте" loading="lazy">
-          <img src="screen-6.jpg" alt="Барабан выбора времени будильника" loading="lazy">
+          <img src="screen-3.jpg" alt="Выбор капсулы" loading="lazy">
+          <img src="screen-4.jpg" alt="Выбор времени и цены" loading="lazy">
         </div>
-        <figcaption>Плашка с данными брони растёт с каждым шагом. Любой параметр в ней — ссылка: поменять время можно, не возвращаясь назад и не теряя введённого.</figcaption>
+        <figcaption>Капсула, время и цена.</figcaption>
       </figure>
     </section>
 
     <section>
-      <h2>Паспорт — без ручного ввода</h2>
-      <p>Паспортные данные — шаг, на котором бросают чаще всего. Я добавил два способа их не печатать: заполнение через Госуслуги и сканирование паспорта. Кнопки остаются на экране, даже когда гость начал вводить вручную: устал — переключился.</p>
+      <h2>Будильник</h2>
+      <p>«Разбудить» стоит на месте «Продолжить» с прошлого экрана: палец уже там. Пропустить можно ссылкой ниже. Время — стандартным барабаном iOS.</p>
+      <figure class="fig reveal">
+        <div class="fig-media phones">
+          <img src="screen-5.jpg" alt="Вопрос: разбудить за полчаса до выселения?" loading="lazy">
+          <img src="screen-6.jpg" alt="Барабан выбора времени будильника" loading="lazy">
+        </div>
+        <figcaption>Плашка с бронью растёт с каждым шагом, любой параметр в ней — ссылка.</figcaption>
+      </figure>
+    </section>
+
+    <section>
+      <h2>Паспорт</h2>
+      <p>Паспорт — шаг, на котором бросают чаще всего. Его можно не печатать: заполнить через Госуслуги или отсканировать. Кнопки не исчезают, даже если человек начал вводить вручную.</p>
       <figure class="fig reveal">
         <div class="fig-media phones">
           <img src="screen-7.jpg" alt="Телефон и кнопки Госуслуг и сканирования" loading="lazy">
-          <img src="screen-8.jpg" alt="Заполненная форма с кнопками автозаполнения внизу" loading="lazy">
+          <img src="screen-8.jpg" alt="Заполненная форма с кнопками автозаполнения" loading="lazy">
           <img src="screen-9.jpg" alt="Оплата: вся бронь на одном экране" loading="lazy">
         </div>
-        <figcaption>Форма, заполненная вручную, и оплата. На экране оплаты вся бронь ещё раз — последняя проверка перед деньгами.</figcaption>
+        <figcaption>Данные гостя и оплата. На оплате — вся бронь ещё раз.</figcaption>
       </figure>
     </section>
 
     <section>
-      <h2>После брони — найти отель и войти</h2>
-      <p>Одна бронь показывается сразу развёрнутой, с номером капсулы и QR-кодом: на входе не нужно лишних нажатий. Несколько броней складываются стопкой, но тип капсулы, дата и имя гостя видны у каждой.</p>
+      <h2>Бронь и вход в капсулу</h2>
+      <p>Одна бронь сразу развёрнута, с номером капсулы и QR-кодом. Несколько складываются стопкой, но тип, дата и имя видны у каждой.</p>
+      <p>Отель в аэропорту приходится искать, поэтому карта отвечает словами: «возле третьего входа».</p>
       <figure class="fig reveal">
         <div class="fig-media phones">
           <img src="screen-12.jpg" alt="Одна бронь: номер капсулы и QR-код" loading="lazy">
           <img src="screen-10.jpg" alt="Несколько броней стопкой" loading="lazy">
           <img src="screen-11.jpg" alt="Карта: отель у третьего входа" loading="lazy">
         </div>
-        <figcaption>Отель в аэропорту приходится искать, поэтому карта отвечает словами: «возле третьего входа, ищите вывеску». Кнопка строит маршрут.</figcaption>
+        <figcaption>Бронь, стопка броней и карта.</figcaption>
       </figure>
     </section>
 
     <section>
-      <h2>Что проверено и что нет</h2>
-      <div class="checks">
-        <div class="yes">
-          <h3>Сделано</h3>
-          <ul>
-            <li>Сценарий брони от входа до QR-кода на двери</li>
-            <li>14 экранов, включая пустые состояния и подсказки</li>
-          </ul>
-        </div>
-        <div class="no">
-          <h3>Не проверено</h3>
-          <ul>
-            <li>Интерфейс не показывался гостям и не тестировался</li>
-            <li>Госуслуги и скан паспорта — идея, без проверки технической возможности</li>
-            <li>Цены и загрузка отеля придуманы</li>
-          </ul>
-        </div>
-      </div>
+      <h2>Результаты</h2>
+      <p>Сценарий от входа до QR-кода на двери — 14 экранов, с пустыми состояниями и подсказками.</p>
+      <p>Гостям интерфейс не показывали. Госуслуги и скан паспорта — идея без проверки, цены и загрузка отеля придуманы.</p>
+    </section>
+
+    <section>
+      <h2>Титры</h2>
+      <dl class="credits">
+        <dt>Сценарий и интерфейс</dt><dd>Алексей Сергеев</dd>
+        <dt>Задание</dt><dd>школа Бюро Горбунова</dd>
+      </dl>
     </section>
 
     <a class="next" href="project-tips.html">
-      <span><small>К первому кейсу</small><strong>Бот для официантов</strong></span>
+      <span><small>Что ещё посмотреть</small><strong>Бот для официантов</strong></span>
       <span class="arrow" aria-hidden="true">↗</span>
     </a>
   </main>
@@ -152,7 +145,7 @@
   </footer>
 
 </div>
-<script src="assets/demos.js?v=8"></script>
-<script src="analytics.js?v=8"></script>
+<script src="assets/demos.js?v=9"></script>
+<script src="analytics.js?v=9"></script>
 </body>
 </html>

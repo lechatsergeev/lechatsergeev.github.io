@@ -491,3 +491,40 @@ button { font: inherit; color: inherit; }
 /* подписи под иллюстрациями — одна строка */
 .case .demo-note, .fig figcaption { text-align: center; font-size: 14px; }
 .demo-top:empty { display: none; }
+
+/* ---------- «Мацца»: фирменные шрифты с сайта и голубое поле ---------- */
+@font-face { font-family: "LT Amber"; src: url(/rimsk/assets/LT%20Amber%20Medium-BCDRA_RF.otf) format("opentype"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Libertinus Sans"; src: url(/rimsk/assets/libertinussans-regular-By8_AW3M.otf) format("opentype"); font-weight: 400; font-display: swap; }
+.mazza-skin { background: linear-gradient(160deg, #e3efff 0%, #c9dcf7 100%); font-family: "Libertinus Sans", Inter, sans-serif; color: #1a1d20; }
+.mazza-skin .demo-badge { color: rgba(26,29,32,.55); font-family: inherit; }
+.mazza-skin .seg { background: rgba(255,255,255,.6); }
+.mazza-skin .seg button { font-family: inherit; }
+.mazza-skin .seg button[aria-pressed="true"] { background: #ffc145; box-shadow: none; }
+.mazza-skin .cap { background: rgba(255,255,255,.85); }
+.mazza-skin .cap-row.limit .cap-bar i { background: #d95c3c; }
+.mazza-skin .scroller-status .found { color: #1a1d20; }
+.obj { background: #faf9f6; border-radius: 18px; padding: 8px 22px; }
+.obj-item { border-bottom: 1px solid transparent; }
+.obj-q { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 5px 0 0; cursor: pointer;
+  font: 500 clamp(18px, 2.2vw, 22px)/1.25 "LT Amber", Georgia, serif; color: #1a1d20; }
+.obj-q::after { content: " +"; color: #d95c3c; }
+.obj-item.open .obj-q::after { content: " −"; }
+.obj-a { display: none; margin: 10px 0 0; font-size: 15px; line-height: 1.5; color: #66625d; max-width: 560px; }
+.obj-item.open .obj-a { display: block; }
+.obj[data-mode="space"] .obj-item { padding: 0 0 48px; }
+.obj[data-mode="space"] .obj-item:last-child { padding-bottom: 14px; }
+.obj[data-mode="frames"] .obj-item { border: 1px solid #c9c4b8; border-radius: 10px; padding: 10px 14px; margin: 8px 0; }
+
+/* ---------- Кофейня: ценник ---------- */
+.coffee-skin { background: #fff5f0; }
+.tag-stage { height: 300px; display: flex; align-items: center; justify-content: center; gap: 24px; overflow: hidden;
+  background: linear-gradient(180deg, #2b211c 0%, #3d2d25 100%); border-radius: 18px; }
+.tag-card { width: 190px; background: #fff; border-radius: 6px; padding: 14px 14px 0; position: relative; overflow: hidden; transition: transform .25s, filter .25s; font-family: "PT Sans", "Fira Sans", Inter, sans-serif; }
+.tag-card b { display: block; font-size: 22px; line-height: 1.05; font-weight: 700; color: #111; }
+.tag-card small { display: block; font-size: 11px; color: #444; margin-top: 4px; min-height: 26px; }
+.tag-card .price { position: relative; height: 68px; margin: 0 -14px; }
+.tag-card .price::before { content: ""; position: absolute; right: -40px; bottom: -70px; width: 190px; height: 160px; border-radius: 50%; background: var(--c, #ffd8c8); }
+.tag-card .price span { position: absolute; right: 14px; bottom: 8px; font: 700 40px/1 "PT Sans", Inter, sans-serif; color: #111; letter-spacing: -.02em; }
+.tag-controls { display: flex; align-items: center; gap: 14px; margin-top: 16px; font: 500 14px Inter, sans-serif; }
+.tag-controls input { flex: 1; accent-color: #FF6B35; }
+.tag-dist { min-width: 120px; text-align: right; font-family: "IBM Plex Mono", monospace; font-size: 13px; }

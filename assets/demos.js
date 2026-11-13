@@ -346,6 +346,30 @@
     };
   }
 
+  /* ---------- «Мацца»: сомнения покупателя (тексты из src/content/brand.ts) ---------- */
+  function objectionsDemo(root) {
+    var box = $(root, ".obj");
+    root.querySelectorAll(".obj-q").forEach(function (q) {
+      q.addEventListener("click", function () {
+        var item = q.parentNode, open = item.classList.toggle("open");
+        q.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+    });
+    segment(root, function (v) { box.dataset.mode = v; });
+  }
+
+  /* ---------- Кофейня: ценник с расстояния ---------- */
+  function tagDemo(root) {
+    var range = $(root, "input[type=range]"), tags = root.querySelectorAll(".tag-card"), label = $(root, ".tag-dist");
+    function draw() {
+      var d = +range.value;                       // метры до витрины
+      var k = Math.max(.22, 1 / d);
+      tags.forEach(function (t) { t.style.transform = "scale(" + k + ")"; t.style.filter = "blur(" + Math.max(0, (d - 1) * .35) + "px)"; });
+      label.textContent = d.toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + " м до витрины";
+    }
+    range.addEventListener("input", draw); draw();
+  }
+
   /* ---------- Демо: смена после полуночи ---------- */
   function nightDemo(root) {
     // Одна смена 12 сентября, 22:00–01:30. Время записи — по Москве.
@@ -485,7 +509,7 @@
     draw();
   }
 
-  var DEMOS = { chat: chatDemo, wish: wishDemo, onboard: onboardDemo, steps: stepsDemo, photo: photoDemo, dayoff: dayoffDemo, publish: publishDemo, compare: compareDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo };
+  var DEMOS = { objections: objectionsDemo, pricetag: tagDemo, chat: chatDemo, wish: wishDemo, onboard: onboardDemo, steps: stepsDemo, photo: photoDemo, dayoff: dayoffDemo, publish: publishDemo, compare: compareDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo };
   document.querySelectorAll("[data-demo]").forEach(function (root) {
     var f = DEMOS[root.dataset.demo];
     if (f) try { f(root); } catch (e) { root.insertAdjacentHTML("beforeend", '<p class="demo-note">Демо не запустилось в этом браузере.</p>'); }
