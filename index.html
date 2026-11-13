@@ -1,432 +1,128 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" class="no-js">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Алексей Сергеев — Product Designer</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Алексей Сергеев — продуктовый дизайнер</title>
+<meta name="description" content="Продуктовый дизайнер из Петербурга. Работаю официантом и делаю продукты, которыми пользуюсь сам.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
-
-<style>
-:root{
-  --bg: #ffffff;
-  --card-bg: #ffffff;
-  --text: #000000;
-  --muted: #666666;
-  --grid-gap: 30px;
-}
-
-* { box-sizing: border-box; }
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  background-color: var(--bg);
-  color: var(--text);
-  -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
-  width: 100%;
-}
-
-.container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 40px;
-  position: relative;
-}
-
-/* --- HEADER --- */
-.top-nav {
-  height: 80px;
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-  font-weight: 600;
-  gap: 24px;
-}
-
-.top-nav a {
-  text-decoration: none;
-  color: var(--text);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  transition: opacity 0.2s;
-  white-space: nowrap; /* Запрещаем перенос слов внутри ссылок */
-}
-
-.top-nav a:hover { opacity: 0.6; }
-.top-nav .name { font-weight: 700; margin-right: 10px; }
-
-/* --- HERO SECTION --- */
-.hero-section {
-  height: calc(100vh - 100px);
-  min-height: 600px;
-  margin-bottom: 40px;
-}
-
-.hero-card {
-  width: 100%;
-  height: 100%;
-  background-color: var(--card-bg);
-  border-radius: 24px;
-  overflow: hidden;
-  display: flex;
-}
-
-.hero-left {
-  flex: 1;
-  /* ДЕСКТОП: Отступ слева 0, чтобы выровнять с сеткой сайта */
-  padding: 60px 40px 60px 0; 
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.main-title {
-  font-size: clamp(40px, 5vw, 80px);
-  line-height: 1;
-  letter-spacing: -0.03em;
-  margin: 0;
-  font-weight: 600;
-}
-
-.main-title span.junior {
-  display: block;
-  font-weight: 300;
-  font-style: italic;
-  font-size: 0.6em;
-  margin-bottom: 0.2em;
-  color: var(--muted);
-}
-
-.hero-meta {
-  font-size: 14px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.hero-right {
-  flex: 0 0 45%;
-  height: 100%;
-  position: relative;
-}
-
-.hero-right img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top center;
-  display: block;
-}
-
-/* --- PORTFOLIO --- */
-.portfolio-section {
-  padding-top: 40px;
-  padding-bottom: 100px;
-}
-
-.section-label {
-  font-size: clamp(40px, 6vw, 80px);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin: 0 0 40px 0;
-}
-
-.project-list {
-  display: flex;
-  flex-direction: column;
-  gap: 60px;
-}
-
-.project-item {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  column-gap: var(--grid-gap);
-  text-decoration: none;
-  color: var(--text);
-  align-items: start;
-  cursor: pointer;
-  padding-top: 20px;
-  border-top: 1px solid transparent;
-  transition: border-color 0.3s;
-}
-
-.project-item:hover {
-  border-top: 1px solid #eee;
-}
-
-.project-info { grid-column: 1 / 6; }
-
-.project-title {
-  font-size: 28px;
-  font-weight: 500;
-  margin: 0 0 16px 0;
-}
-
-.project-desc {
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--muted);
-  max-width: 420px;
-  margin: 0;
-}
-
-.project-arrow {
-  grid-column: 10 / 11;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.project-arrow svg {
-  width: 45px;
-  height: 45px;
-  transition: transform 0.2s;
-}
-
-.project-item:hover .project-arrow svg {
-  transform: translate(5px, -5px);
-}
-
-/* --- FOOTER --- */
-.big-footer {
-  padding: 20px 0 40px;
-  width: 100%;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-}
-
-.footer-nick {
-  font-size: 9.5vw;
-  font-weight: 300;
-  line-height: 1;
-  margin: 0;
-  text-transform: uppercase;
-  white-space: nowrap;
-  text-align: center;
-  text-decoration: none;
-  color: var(--text);
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.footer-nick:hover {
-  opacity: 0.6;
-}
-
-/* --- АДАПТИВ (ПЛАНШЕТЫ И МОБИЛЬНЫЕ) --- */
-@media (max-width: 900px) {
-  .container {
-    padding: 0 20px;
-  }
-  
-  /* ИСПРАВЛЕНИЕ 1: ШАПКА В ОДНУ СТРОКУ */
-  .top-nav {
-    justify-content: space-between;
-    gap: 20px; /* Чуть увеличил отступ для красоты */
-    font-size: 11px;
-    flex-wrap: nowrap; /* Запрещаем перенос на вторую строку */
-    overflow-x: auto; /* Если экран совсем маленький, можно скроллить пальцем влево-вправо */
-    -webkit-overflow-scrolling: touch;
-    /* Скрываем скроллбар для эстетики */
-    scrollbar-width: none; 
-    padding: 20px 0;
-  }
-  
-  .top-nav::-webkit-scrollbar { 
-    display: none; 
-  }
-  
-  .top-nav .name {
-    margin-right: 0;
-    flex-shrink: 0; /* Имя не сжимается */
-  }
-  
-  .top-nav a {
-      flex-shrink: 0; /* Ссылки не сжимаются */
-  }
-
-  .hero-section {
-    height: auto;
-    min-height: 0;
-    margin-bottom: 30px;
-  }
-
-  .hero-card {
-    flex-direction: column;
-    border-radius: 16px;
-  }
-
-  /* ИСПРАВЛЕНИЕ 2: ВЫРАВНИВАНИЕ ЗАГОЛОВКА */
-  .hero-left {
-    order: 1;
-    /* Мы вернули 20px слева и справа.
-       Теперь текст не прилипает к краю экрана, 
-       а имеет такой же отступ, как и весь контейнер.
-    */
-    padding: 40px 20px 30px 20px; 
-  }
-  
-  .main-title span.junior {
-      margin-left: -0.05em; 
-  }
-
-  .hero-right {
-    order: 2;
-    flex: 0 0 auto;
-    width: 100%;
-    height: 50vh; 
-    max-height: 500px;
-    min-height: 300px;
-  }
-
-  .main-title {
-    font-size: 42px; 
-    margin-bottom: 20px;
-  }
-
-  .project-list {
-      gap: 40px;
-  }
-
-  .project-item {
-    display: flex;
-    flex-direction: column;
-    padding-bottom: 30px;
-    border-bottom: 1px solid #eee;
-  }
-
-  .project-arrow {
-    display: block;
-    margin-top: 15px;
-  }
-  
-  .project-arrow svg {
-      width: 30px;
-      height: 30px;
-  }
-
-  .footer-nick {
-    font-size: 10.5vw; 
-    white-space: normal; 
-    word-break: break-all;
-    line-height: 0.9;
-  }
-}
-
-@media (max-width: 480px) {
-    .top-nav { gap: 15px; } /* Чуть плотнее на совсем маленьких */
-    
-    .hero-left {
-        padding: 30px 20px 20px 20px; /* Держим отступ 20px даже на маленьких */
-    }
-    
-    .main-title {
-        font-size: 36px;
-    }
-    
-    .hero-right {
-        height: 400px;
-    }
-}
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
 </head>
-
 <body>
+<div class="wrap">
 
-<div class="container">
-  
-  <nav class="top-nav">
-    <a href="#" class="name">Алексей Сергеев</a>
-    <a href="#portfolio">Портфолио</a>
-    <a href="https://t.me/Lechatsergeev" target="_blank">Телеграм</a>
-    <a href="mailto:alexey.sergeev.ph@gmail.com">Почта</a>
-  </nav>
-
-  <header class="hero-section">
-    <div class="hero-card">
-      <div class="hero-left">
-        <h1 class="main-title">
-          <span class="junior">Junior</span>
-          Product<br>Designer
-        </h1>
-        <div class="hero-meta">
-          UX/UI&nbsp;&nbsp;ВЕБ&nbsp;&nbsp;БРЕНДИНГ
-        </div>
-      </div>
-      <div class="hero-right">
-        <img src="myphoto.jpg" alt="Алексей Сергеев">
-      </div>
-    </div>
+  <header class="nav">
+    <a class="pill" href="./">Алексей Сергеев</a>
+    <nav class="nav-group" aria-label="Разделы">
+      <a class="pill hide-m" href="#work">Работы</a>
+      <a class="pill" href="https://t.me/lechatsergeev" target="_blank" rel="noopener">Телеграм</a>
+      <a class="pill" href="mailto:alexey.sergeev.ph@gmail.com">Почта</a>
+    </nav>
   </header>
 
-  <main id="portfolio" class="portfolio-section">
-    <h2 class="section-label">Portfolio</h2>
-    
-    <div class="project-list">
-      
-      <a href="project-coffee.html" class="project-item">
-        <div class="project-info">
-          <h3 class="project-title">Интернет-магазин для «Будем Знакомы»</h3>
-          <p class="project-desc">Рабочий кейс. Как я нашел проблему в кофейне, разработал гипотезу, проверил ее и создал лендинг по продаже зерна.</p>
+  <section class="hero">
+    <img class="hero-photo" src="img/me.webp" alt="Алексей Сергеев" width="850" height="900">
+    <div class="glass">
+      <h1>Алексей — продуктовый дизайнер из&nbsp;Петербурга. Работаю официантом и&nbsp;делаю продукты, которыми пользуюсь сам.</h1>
+      <div class="glass-meta">
+        <span>Сейчас — бот для смен официантов</span>
+        <span class="mono"><span id="clock">--:--</span> в Петербурге</span>
+      </div>
+    </div>
+  </section>
+
+  <main id="work">
+    <div class="section-head">
+      <h2>Работы</h2>
+      <span>2025–2026</span>
+    </div>
+
+    <div class="projects">
+
+      <a class="project reveal" href="project-tips.html">
+        <div class="stage s-bot">
+          <img class="phone small" src="bot-v3-mono.jpg" alt="Восьмая версия экрана: монохром" loading="lazy">
+          <img class="phone" src="bot-v6-now.jpg" alt="Экран бота: сумма за неделю и календарь смен">
+          <img class="phone small" src="bot-v4-blue.jpg" alt="Версия с синей шкалой календаря" loading="lazy">
         </div>
-        <div class="project-arrow">
-          <svg viewBox="0 0 45 45" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 40 L40 5 M40 5 L15 5 M40 5 L40 30" />
-          </svg>
+        <div class="caption">
+          <h3>Бот для учёта чаевых <span class="arrow">↗</span></h3>
+          <p>Запись одним сообщением, пока в другой руке поднос. 25 версий экрана за 8 дней и разбор, почему коллеги бота не поставили.</p>
+          <span class="tag mono">Личный проект · 2026</span>
         </div>
       </a>
 
-      <a href="project-mazza.html" class="project-item">
-        <div class="project-info">
-          <h3 class="project-title">Сайт «Мацца» — замороженная пицца</h3>
-          <p class="project-desc">Личный проект в работе. Как я трижды урезал собственную эффектную презентацию, чтобы она перестала мешать товару.</p>
+      <a class="project reveal" href="project-mazza.html">
+        <div class="stage s-mazza">
+          <div class="browser"><img src="mazza-hero.jpg" alt="Первый экран сайта «Мацца» с 3D-моделью пиццы" loading="lazy"></div>
         </div>
-        <div class="project-arrow">
-          <svg viewBox="0 0 45 45" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 40 L40 5 M40 5 L15 5 M40 5 L40 30" />
-          </svg>
-        </div>
-      </a>
-
-      <a href="project-tips.html" class="project-item">
-        <div class="project-info">
-          <h3 class="project-title">Телеграм-бот для учёта чаевых</h3>
-          <p class="project-desc">Личный проект. Трекер чаевых, которым пользуюсь каждую смену: 25 версий экрана и невыясненная причина, почему его не берут коллеги.</p>
-        </div>
-        <div class="project-arrow">
-          <svg viewBox="0 0 45 45" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 40 L40 5 M40 5 L15 5 M40 5 L40 30" />
-          </svg>
+        <div class="caption">
+          <h3>«Мацца» — замороженная римская пицца <span class="arrow">↗</span></h3>
+          <p>Кому продавать пиццу, которую ещё не производишь: финансовая модель, отказ от ресторанов и сайт для закупщика и покупателя.</p>
+          <span class="tag mono">Личный проект · с марта 2026</span>
         </div>
       </a>
 
-      <a href="project-hotel.html" class="project-item">
-        <div class="project-info">
-          <h3 class="project-title">Мобильное приложение для отеля</h3>
-          <p class="project-desc">Учебный кейс. Как я разобрался в работе капсульного отеля и предложил оптимальный путь пользователя к бронированию капсулы.</p>
+      <a class="project reveal" href="project-coffee.html">
+        <div class="stage s-coffee">
+          <img class="phone small" src="coffee-menu-1.jpg" alt="Ценники для витрины кофейни" loading="lazy">
+          <img class="phone" src="site-hero.jpg" alt="Первый экран сайта кофейни «Будем Знакомы»" loading="lazy">
+          <img class="phone small" src="site-cards-1.jpg" alt="Карточки сортов зерна на сайте" loading="lazy">
         </div>
-        <div class="project-arrow">
-          <svg viewBox="0 0 45 45" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-             <path d="M5 40 L40 5 M40 5 L15 5 M40 5 L40 30" />
-          </svg>
+        <div class="caption">
+          <h3>Зерно для «Будем Знакомы» <span class="arrow">↗</span></h3>
+          <p>Ценники, меню, канал и сайт, чтобы зерно в кофейне начали замечать. Сайт запустил к Новому году, продажи измерить не успел.</p>
+          <span class="tag mono">Работа бариста · 2025</span>
+        </div>
+      </a>
+
+      <a class="project reveal" href="project-hotel.html">
+        <div class="stage s-hotel">
+          <img class="phone small" src="screen-1.jpg" alt="Главный экран приложения отеля" loading="lazy">
+          <img class="phone" src="screen-4.jpg" alt="Выбор времени и цены капсулы" loading="lazy">
+          <img class="phone small" src="screen-9.jpg" alt="Бронь с QR-кодом для входа" loading="lazy">
+        </div>
+        <div class="caption">
+          <h3>Бронирование капсульного отеля <span class="arrow">↗</span></h3>
+          <p>Бронь капсулы в аэропорту за 4 шага и будильник, чтобы не проспать рейс. Учебное задание.</p>
+          <span class="tag mono">Учёба · Бюро Горбунова</span>
         </div>
       </a>
 
     </div>
+
+    <div class="section-head">
+      <h2>Как я работаю</h2>
+      <span>выводы из кейсов</span>
+    </div>
+    <ul class="principles">
+      <li>Проверяю замером, а не на глаз. На глаз всё выглядит «примерно нормально».<small>«Мацца»: потерянная ось, разъехавшиеся заголовки</small></li>
+      <li>Эффектное решение защищает себя тем, что нравится автору. Это плохой аргумент.<small>«Мацца»: презентация перед товаром</small></li>
+      <li>То, что не проверено, описываю так же подробно, как то, что сделано.<small>Все кейсы: раздел «Что проверено и что нет»</small></li>
+      <li>Довожу до живого продукта: часть решений видна только на работающем экране.<small>Бот: неразрывный пробел в моноширинном шрифте</small></li>
+    </ul>
   </main>
 
+  <footer class="footer">
+    <a class="cta" href="https://t.me/lechatsergeev" target="_blank" rel="noopener">
+      <small>Ищу работу продуктовым дизайнером</small>
+      <strong>Написать в Телеграм <span class="arrow">↗</span></strong>
+    </a>
+    <div class="colophon">
+      <span>© 2026 · Сделано в Петербурге между сменами</span>
+      <nav aria-label="Контакты">
+        <a href="https://t.me/lechatsergeev" target="_blank" rel="noopener">Телеграм</a>
+        <a href="mailto:alexey.sergeev.ph@gmail.com">Почта</a>
+        <a href="https://github.com/lechatsergeev" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+      <span>Inter · IBM Plex Mono</span>
+    </div>
+  </footer>
+
 </div>
-
-<footer class="big-footer">
-  <a href="https://t.me/Lechatsergeev" target="_blank" class="footer-nick">@LECHATSERGEEV</a>
-</footer>
-
+<script src="assets/demos.js"></script>
 <script src="analytics.js"></script>
 </body>
 </html>
