@@ -74,6 +74,7 @@ window.Telegram = { WebApp: { ready:function(){}, expand:function(){}, initData:
     }
     return { entries: list };
   }
+  window.__demo = { stats: stats, monthData: monthData };   // для анимации на главной портфолио
   function ok(v) { return Promise.resolve({ ok: true, status: 200, json: function () { return Promise.resolve(v); } }); }
   window.fetch = function (u, o) {
     u = String(u || ""); var b = {}; try { b = JSON.parse((o && o.body) || "{}"); } catch (e) {}
