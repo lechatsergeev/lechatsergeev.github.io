@@ -138,6 +138,51 @@
     say("чай 500");
   }
 
+  /* ---------- Демо: фраза о выходных до и после 8 ноября ---------- */
+  function wishDemo(root) {
+    var log = $(root, ".chat-log"), form = $(root, "form"), input = $(root, "input");
+    var mode = "before";
+    var ACC = { cash: "Наличные", card: "Карта" };
+    var WISH = /выходн|воскрес|суббот|понедельн|вторник|сред[аы]|четверг|пятниц|\d\/\d|пожелан|не могу работать/i;
+    var MONTHS = "ноября";
+    function reply(text) {
+      if (mode === "after" && WISH.test(text)) {
+        var dates = (text.match(/\b([12]?\d|3[01])\b(?!\s*\/)(?!\/)/g) || []).filter(function (d) { return !/\d\/\d/.test(text) || text.indexOf(d + "/") === -1; });
+        var pattern = (text.match(/\d\/\d/) || [])[0];
+        var days = (text.match(/воскресен[а-яё]*|суббот[а-яё]*|понедельник[а-яё]*/gi) || []).map(function (w) { return w.toLowerCase(); });
+        if (dates.length && !pattern && !days.length)
+          return "График на 16–30 ноября. Записал выходные: " + dates.join(", ") + " " + MONTHS + ".";
+        var parts = [];
+        if (days.length) parts.push(days.join(", "));
+        if (pattern) parts.push("режим " + pattern);
+        return "Записал пожелание: " + (parts.join(", ") || "передам менеджеру") + ".\n\nЭто пожелание, а не обязательный выходной: программа постарается его учесть, менеджер увидит его в графике.";
+      }
+      var res;
+      try { res = parse(text); } catch (e) { res = { error: true }; }
+      if (res.error) return "Не стал записывать: сумма неоднозначна. Напиши положительную сумму с копейками, например «чай 500,50».";
+      if (!res.items.length) return "Здесь нет суммы. Напиши, например, «чай 500».";
+      return res.items.map(function (e) {
+        return (e.kind === "income" ? "➕ +" : "➖ −") + fmt(e.amount) + " ₽ · " + e.category + " · " + ACC[e.account];
+      }).join("\n");
+    }
+    function say(text) {
+      var me = el("div", "msg me"); me.textContent = text; log.appendChild(me);
+      var bot = el("div", "msg bot"); bot.textContent = reply(text);
+      if (mode === "before" && !/^Записал|^График/.test(bot.textContent) && /₽/.test(bot.textContent)) bot.classList.add("bad-msg");
+      setTimeout(function () { log.appendChild(bot); log.scrollTop = log.scrollHeight; }, 280);
+      log.scrollTop = log.scrollHeight;
+    }
+    segment(root, function (v) {
+      mode = v;
+      log.innerHTML = '<div class="msg hint">' + (v === "before" ? "Бот 8 ноября утром: всё с числами — деньги" : "Бот 8 ноября вечером: фраза о выходных не идёт в деньги") + "</div>";
+      say("нужны выходные 17, 19");
+    });
+    form.addEventListener("submit", function (ev) { ev.preventDefault(); var v = input.value.trim(); if (v) { say(v); input.value = ""; } });
+    root.querySelectorAll(".chips button").forEach(function (b) { b.addEventListener("click", function () { say(b.textContent); }); });
+    log.innerHTML = '<div class="msg hint">Бот 8 ноября утром: всё с числами — деньги</div>';
+    say("нужны выходные 17, 19");
+  }
+
   /* ---------- Демо: смена после полуночи ---------- */
   function nightDemo(root) {
     // Одна смена 12 сентября, 22:00–01:30. Время записи — по Москве.
@@ -277,7 +322,7 @@
     draw();
   }
 
-  var DEMOS = { chat: chatDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo };
+  var DEMOS = { chat: chatDemo, wish: wishDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo };
   document.querySelectorAll("[data-demo]").forEach(function (root) {
     var f = DEMOS[root.dataset.demo];
     if (f) try { f(root); } catch (e) { root.insertAdjacentHTML("beforeend", '<p class="demo-note">Демо не запустилось в этом браузере.</p>'); }
