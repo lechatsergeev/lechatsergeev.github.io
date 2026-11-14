@@ -593,3 +593,5 @@ button { font: inherit; color: inherit; }
 .vers.on i { opacity: 1; transform: none; }
 .vers-legend { text-align: center; margin-top: 14px; font: 500 14px "Ysabeau Office", Inter, sans-serif; color: #1b1814; }
 .s-news { background: linear-gradient(180deg, #ECE4D4 0%, #d9cfba 100%); }
+.reel-phone { width: min(100%, 340px); height: auto; aspect-ratio: 9 / 16; background: #000; }
+.reel-phone video { display: block; width: 100%; height: 100%; object-fit: cover; }
