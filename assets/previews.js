@@ -211,7 +211,7 @@
     try { d = frame.contentDocument; w = frame.contentWindow; void d.body; } catch (e) { frame.parentNode.classList.add("banded"); return; }
     var st = d.createElement("style");
     var sb = frame.closest(".iphone").style.getPropertyValue("--sb");   // цвет под статусбаром, если задан у рамки
-    st.textContent = "html{padding-top:54px!important}" + (sb ? "html,body{background:" + sb + "!important}" : "");
+    st.textContent = "html{padding-top:54px!important;scrollbar-width:none}*{scrollbar-width:none}*::-webkit-scrollbar{display:none;width:0;height:0}" + (sb ? "html,body{background:" + sb + "!important}" : "");
     d.head.appendChild(st);
     function shift() {                                   // шапки с position: fixed тоже опускаем под статусбар; фоны во весь экран не трогаем
       d.querySelectorAll("body *").forEach(function (el) {
