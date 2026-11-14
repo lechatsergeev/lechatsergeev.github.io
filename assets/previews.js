@@ -104,6 +104,15 @@
       await sleep(800);
     },
 
+    // Пост канала: карточки листаются одна за другой.
+    newsroom: async function (win, live) {
+      if (!win.showCard) return sleep(800);
+      win.showCard(0);
+      await sleep(1800);
+      for (var k = 1; k < 9 && live(); k++) { win.showCard(k); await sleep(1600); }
+      await sleep(1200);
+    },
+
     // Товар сразу за первым экраном, потом лента приготовления со своей прокруткой.
     mazza: async function (win, live) {
       var doc = win.document;

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ru" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Редакция для одного человека — Алексей Сергеев</title>
+<meta name="description" content="Кейс: телеграм-канал о джазе, который готовит нейросеть, а выпускает редактор.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Ysabeau+Office:wght@400;500;600&family=Cormorant:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css?v=12">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="nav">
+    <a class="pill" href="./">Алексей Сергеев</a>
+    <nav class="nav-group" aria-label="Разделы">
+      <a class="pill hide-m" href="./#work">Работы</a>
+      <a class="pill" href="https://t.me/lechatsergeev" target="_blank" rel="noopener">Телеграм</a>
+    </nav>
+  </header>
+
+  <main class="case">
+    <div class="case-head">
+      <a class="back" href="./#work">← Все работы</a>
+      <h1>Редакция для одного человека</h1>
+      <p class="lede">«Зачем слушать» — телеграм-канал о классическом джазе. Выпуски готовит нейросеть: ищет историю, пишет, собирает карточки. Я выбираю, правлю и выпускаю.</p>
+      <p class="lede" style="margin-top:16px">Канал публичный, его читают несколько моих друзей. Продвигать буду, когда редакция заработает. Пока набиваю руку: чтобы получился хороший контент, сначала долго делаешь плохой.</p>
+      <dl class="meta">
+        <div><dt>Роль</dt><dd>Главный редактор и арт-директор</dd></div>
+        <div><dt>Сроки</dt><dd>С октября 2026, параллельно сменам</dd></div>
+        <div><dt>Нейросеть</dt><dd>Codex, затем Claude Code: исследование, тексты, сборка</dd></div>
+        <div><dt>Статус</dt><dd>Канал выходит, читают друзья</dd></div>
+      </dl>
+    </div>
+
+    <section>
+      <h2>Выпуск</h2>
+      <p>Выпуск — альбом карточек и подпись под ним. Это «Великий день в Гарлеме»: 57 музыкантов на одной улице в 1958 году.</p>
+      <div class="demo reveal" data-demo="album">
+        <div class="demo-box ed-skin">
+          <div class="seg" role="group" aria-label="Версия" style="display:none"><button type="button" data-value="v2" aria-pressed="true">Итоговая</button></div>
+          <div class="tg-post">
+            <div class="tg-strip" aria-label="Карточки выпуска"></div>
+            <div class="tg-body"><div class="tg-caption"></div><div class="tg-meta"><span class="tg-count"></span><span>18:00</span></div></div>
+          </div>
+        </div>
+        <p class="demo-note">Листай карточки. Снимок Арта Кейна — цитата, автор указан.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Двадцать шесть версий</h2>
+      <p>Сначала выпуски собирал Codex. За два дня — двадцать шесть версий пакета. Я не согласовал ни одной.</p>
+      <div class="demo reveal" data-demo="versions">
+        <div class="demo-box ed-skin">
+          <div class="vers" aria-hidden="true"></div>
+          <p class="vers-legend">26 версий · 0 согласованных</p>
+        </div>
+      </div>
+      <p>Тогда я разделил роли. Текст и редактуру нейросеть правит сама и сама улучшает. Дизайн — макеты, цвета, типографику — только предлагает, решаю я. Согласие относится к точной версии: любая правка — новый пакет.</p>
+    </section>
+
+    <section>
+      <h2>Согласование</h2>
+      <p>Готовый выпуск приходит мне в личный чат: карточки, источники, подпись и кнопки. В канал без моего решения не уходит ничего.</p>
+      <div class="demo reveal" data-demo="approve">
+        <div class="demo-box ed-skin">
+          <div class="chat"><div class="chat-log" aria-live="polite"></div></div>
+          <button type="button" class="again">Прислать ещё раз</button>
+        </div>
+        <p class="demo-note">Кнопки и ответы бота из кода редакции. В канал отсюда ничего не уходит.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Правка</h2>
+      <p>Первую версию «Гарлема» я вернул. Карточки повторяли подпись слово в слово, цвет заголовка был несимпатичный, текст — гладкий, но безликий.</p>
+      <p>Нейросеть убрала повторы, добавила обложку Esquire, перешла на сепию с янтарём из моей палитры и шрифты, которые выбрал я: Cormorant и Ysabeau. Подпись переписала голосом канала.</p>
+      <div class="demo reveal" data-demo="album" data-diff="1">
+        <div class="demo-box ed-skin">
+          <div class="demo-top">
+            <div class="seg" role="group" aria-label="Версия выпуска">
+              <button type="button" data-value="v1" aria-pressed="true">20:46</button>
+              <button type="button" data-value="v2" aria-pressed="false">23:51</button>
+            </div>
+          </div>
+          <div class="tg-post">
+            <div class="tg-strip" aria-label="Карточки выпуска"></div>
+            <div class="tg-body"><div class="tg-caption"></div><div class="tg-meta"><span class="tg-count"></span><span>7 ноября</span></div></div>
+          </div>
+        </div>
+        <p class="demo-note">Один вечер, две версии. Жёлтым — что изменилось в подписи.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Голос</h2>
+      <p>Одну версию я назвал «нейросеть, которая старается писать красиво», следующую — «нейросеть, которой запретили писать красиво». Свои правила она придумывала плохо, поэтому голос искали по образцам: рассказчик «Отеля „Гранд Будапешт“» и русский дубляж «Бесподобного мистера Фокса».</p>
+      <p>Из разборов выросли правила: сначала кто, потом что; у каждого поступка причина; у каждого названного человека — лицо на карточке. Каждое замечание становится правилом проекта, и следующая сессия начинается с него.</p>
+    </section>
+
+    <section>
+      <h2>Метод</h2>
+      <p>Главная ошибка жила две недели. Я хотел, чтобы нейросеть брала готовые истории — статьи, главы, радиопередачи, которые уже прошли редактуру и нашли читателя. А она собирала свои по первоисточникам.</p>
+      <p>Теперь она приносит несколько готовых материалов с коротким пересказом, я выбираю. «Гарлем» — первый выпуск по этому методу: из пяти находок я выбрал фильм Джин Бах о той съёмке.</p>
+    </section>
+
+    <section>
+      <h2>Где я сдался</h2>
+      <p>Параллельно мы делали двадцатиминутный ролик о Джанго Рейнхардте. Сценарий дошёл до двенадцатого черновика, к одиннадцатому я оставил 64 комментария.</p>
+      <p>С монтажом не вышло: вступление переделывали трижды, и 7 ноября я написал «Ладно, сдаюсь. Буду делать сам». Нейросеть собрала мне последовательность для Premiere — склейки, голос и пометки о правах на каждый кадр.</p>
+    </section>
+
+    <section>
+      <h2>Результаты</h2>
+      <p>Канал выходит. Выпуски приходят на согласование, а публикует их задача по расписанию в 18:00 — только версию с моим согласием.</p>
+      <p>Ошибки нейросети пока повторяются: делает сама вместо того, чтобы найти готовое, выполняет просьбы не буквально, пишет ровно и безлико. Каждая из них записана правилом.</p>
+    </section>
+
+    <section>
+      <h2>Титры</h2>
+      <dl class="credits">
+        <dt>Редакция, дизайн, выпуск</dt><dd>Алексей Сергеев</dd>
+        <dt>Исследование, тексты, сборка</dt><dd>Codex, Claude Code</dd>
+        <dt>Фото в выпуске</dt><dd>Арт Кейн, 1958, — цитата; обложка Esquire, январь 1959</dd>
+        <dt>Шрифты</dt><dd>Cormorant, Ysabeau</dd>
+      </dl>
+    </section>
+
+    <a class="next" href="project-hotel.html">
+      <span><small>Что ещё посмотреть</small><strong>Бронирование капсульного отеля</strong></span>
+      <span class="arrow" aria-hidden="true">↗</span>
+    </a>
+  </main>
+
+  <footer class="footer">
+    <a class="cta" href="https://t.me/lechatsergeev" target="_blank" rel="noopener">
+      <small>Ищу работу продуктовым дизайнером</small>
+      <strong>Обсудить в Телеграм <span class="arrow">↗</span></strong>
+    </a>
+    <div class="colophon">
+      <span>© 2026 · Сделано в Петербурге между сменами</span>
+      <nav aria-label="Контакты">
+        <a href="https://t.me/lechatsergeev" target="_blank" rel="noopener">Телеграм</a>
+        <a href="mailto:alexey.sergeev.ph@gmail.com">Почта</a>
+      </nav>
+    </div>
+  </footer>
+
+</div>
+<script src="assets/demos.js?v=12"></script>
+<script src="analytics.js?v=12"></script>
+</body>
+</html>

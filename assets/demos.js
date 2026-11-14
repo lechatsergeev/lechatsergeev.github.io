@@ -382,6 +382,67 @@
     segment(root, show); show("all");
   }
 
+  /* ---------- Редакция: пост в канале, две версии одного выпуска ---------- */
+  var HARLEM = {
+    v1: { n: 8, caption: "Летом 1958 года журнал Esquire готовил номер о джазе, и снимок поручили Арту Кейну, арт-директору, который ни разу не снимал профессионально. Студии у него не было, и он позвал музыкантов прямо на улицу в Гарлеме. По другой версии, идею придумал редактор журнала Роберт Бентон.\n\n12 августа в десять утра, когда джазмены обычно спят, к дому 17 на 126-й улице пришли 57 музыкантов. Каунт Бейси устал стоять и сел на бордюр, за ним уселась дюжина соседских мальчишек. Телониус Монк опоздал и пришёл в светлом пиджаке, чтобы его было видно.\n\nСаксофонисту Бенни Голсону было 29, его никто не знал, и среди кумиров он думал: «Что я здесь делаю?» Через два месяца он записал с Артом Блейки «Moanin'». Снимок вышел разворотом январского Esquire 1959 года." },
+    v2: { n: 9, caption: "Летом 1958 года журнал Esquire готовил номер о джазе и поручил снимок Арту Кейну, арт-директору без студии и без единой профессиональной съёмки. Собрать музыкантов на гарлемской улице придумал то ли сам Кейн, то ли редактор журнала Роберт Бентон.\n\n12 августа, в десять утра, в час, когда приличные джазмены ещё спят, к дому 17 на 126-й улице пришли 57 музыкантов. Руководитель оркестра Каунт Бейси устал стоять и сел на бордюр, за ним уселась дюжина соседских мальчишек. Пианист Телониус Монк опоздал и нарядился в светлый пиджак: хотел быть звездой.\n\nСаксофонисту Бенни Голсону было 29, и, глядя на кумиров, он думал: «Что я здесь делаю?» Через два месяца он записал с Артом Блейки «Moanin'». Журнал со снимком он, впрочем, выбросил." }
+  };
+  function diffWords(a, b) {
+    var A = a.split(/(\s+)/), B = b.split(/(\s+)/), n = A.length, m = B.length, L = [];
+    for (var i = 0; i <= n; i++) { L.push(new Array(m + 1).fill(0)); }
+    for (i = n - 1; i >= 0; i--) for (var j = m - 1; j >= 0; j--) L[i][j] = A[i] === B[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    var out = [], x = 0, y = 0;
+    while (y < m) {
+      if (x < n && A[x] === B[y]) { out.push(esc(B[y])); x++; y++; }
+      else if (x < n && L[x + 1][y] >= L[x][y + 1]) x++;
+      else { out.push(/^\s+$/.test(B[y]) ? B[y] : "<mark>" + esc(B[y]) + "</mark>"); y++; }
+    }
+    return out.join("").replace(/<\/mark>([ ]+)<mark>/g, "$1");
+  }
+  function albumDemo(root) {
+    var strip = $(root, ".tg-strip"), cap = $(root, ".tg-caption"), count = $(root, ".tg-count");
+    function show(v) {
+      var d = HARLEM[v], html = "";
+      for (var i = 1; i <= d.n; i++) html += '<img src="img/harlem/' + v + "-" + i + '.jpg" alt="Карточка ' + i + '" loading="lazy">';
+      strip.innerHTML = html; strip.scrollLeft = 0;
+      cap.innerHTML = v === "v2" && root.dataset.diff ? diffWords(HARLEM.v1.caption, d.caption) : esc(d.caption);
+      count.textContent = d.n + " карточек · листай вбок";
+    }
+    segment(root, show); show(root.querySelector('.seg button[aria-pressed="true"]').dataset.value);
+  }
+
+  /* ---------- Редакция: согласование в личном чате (тексты из newsroom/telegram/bot.py) ---------- */
+  function approveDemo(root) {
+    var log = $(root, ".chat-log");
+    function lock(b) { b.parentNode.querySelectorAll("button").forEach(function (x) { x.disabled = true; }); meSay(log, b.textContent); }
+    function start() {
+      log.innerHTML = "";
+      var album = el("div", "msg bot tg-album");
+      album.innerHTML = [1, 2, 3, 6].map(function (i) { return '<img src="img/harlem/v2-' + i + '.jpg" alt="">'; }).join("") + '<span class="tg-more">+5</span>';
+      log.appendChild(album);
+      botSay(log, "Источники\n• Critics At Large — Neglected Gem: A Great Day in Harlem\n• Jazz in Europe — The story behind the Iconic Jazz photograph\n• Wikipedia — Moanin'\n\nФото: Арт Кейн", null, 200);
+      botSay(log, HARLEM.v2.caption.split("\n\n")[0] + " …", [
+        ["Согласовать и опубликовать сейчас", function (b) { lock(b); botSay(log, "Опубликовать в канал сейчас? Это увидят подписчики.", [["Да, опубликовать сейчас", function (x) { lock(x); botSay(log, "Здесь бот публикует выпуск. В демо в канал ничего не уходит."); }], ["Отмена", function (x) { lock(x); botSay(log, "Публикация отменена. Пакет не согласован."); }]]); }],
+        ["Согласовать и запланировать", function (b) { lock(b); botSay(log, "Пакет согласован. В очереди на 18:00."); }],
+        ["Править подпись", function (b) { lock(b); botSay(log, "Пришлите подпись целиком, как она должна выйти. Ссылку «Слушать» и фотокредит бот добавит сам."); }],
+        ["На доработку", function (b) { lock(b); botSay(log, "Напишите замечания ко всему пакету: тексту, фактам или оформлению."); }],
+        ["Отклонить", function (b) { lock(b); botSay(log, "Пакет отклонён. Решение сохранено."); }]
+      ], 500);
+    }
+    $(root, ".again").onclick = start;
+    start();
+  }
+
+  /* ---------- Редакция: двадцать шесть версий ---------- */
+  function versionsDemo(root) {
+    var box = $(root, ".vers"), n = 26, html = "";
+    for (var i = 0; i < n; i++) html += '<i style="transition-delay:' + (i * 45) + 'ms"></i>';
+    box.innerHTML = html;
+    if (!("IntersectionObserver" in window)) { box.classList.add("on"); return; }
+    var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { box.classList.add("on"); io.disconnect(); } }); }, { threshold: .5 });
+    io.observe(box);
+  }
+
   /* ---------- Кофейня: ценник с расстояния ---------- */
   function tagDemo(root) {
     var range = $(root, "input[type=range]"), tags = root.querySelectorAll(".tag-card"), label = $(root, ".tag-dist");
@@ -588,7 +649,7 @@
     draw();
   }
 
-  var DEMOS = { flow: flowDemo, gitlog: gitlogDemo, objections: objectionsDemo, pricetag: tagDemo, chat: chatDemo, wish: wishDemo, onboard: onboardDemo, steps: stepsDemo, photo: photoDemo, dayoff: dayoffDemo, publish: publishDemo, compare: compareDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo };
+  var DEMOS = { album: albumDemo, approve: approveDemo, versions: versionsDemo, flow: flowDemo, gitlog: gitlogDemo, objections: objectionsDemo, pricetag: tagDemo, chat: chatDemo, wish: wishDemo, onboard: onboardDemo, steps: stepsDemo, photo: photoDemo, dayoff: dayoffDemo, publish: publishDemo, compare: compareDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo };
   document.querySelectorAll("[data-demo]").forEach(function (root) {
     var f = DEMOS[root.dataset.demo];
     if (f) try { f(root); } catch (e) { root.insertAdjacentHTML("beforeend", '<p class="demo-note">Демо не запустилось в этом браузере.</p>'); }

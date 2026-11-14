@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Выпуск «Великий день в Гарлеме» — демо</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Пост канала «Зачем слушать» так, как его видит читатель в Telegram */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Inter, -apple-system, sans-serif; background: #d9cfba; color: #111; padding: 18px 12px 40px; }
+  .ch { display: flex; align-items: center; gap: 10px; margin: 0 4px 12px; }
+  .ch i { width: 36px; height: 36px; border-radius: 50%; background: #1b1814; color: #FFBD00; display: grid; place-items: center; font: 600 16px Georgia, serif; font-style: normal; }
+  .ch b { font-size: 15px; }
+  .ch span { display: block; font-size: 12px; color: #6b6458; }
+  .post { background: #fff; border-radius: 16px; overflow: hidden; }
+  .strip { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; background: #111; scrollbar-width: none; }
+  .strip::-webkit-scrollbar { display: none; }
+  .strip img { flex: 0 0 100%; width: 100%; aspect-ratio: 1990 / 2560; object-fit: cover; scroll-snap-align: start; }
+  .dots { display: flex; justify-content: center; gap: 5px; padding: 8px 0 0; }
+  .dots b { width: 6px; height: 6px; border-radius: 50%; background: #d4ccbb; transition: background .2s; }
+  .dots b.on { background: #1b1814; }
+  .cap { padding: 10px 14px 14px; font-size: 14px; line-height: 1.45; white-space: pre-line; }
+  .meta { padding: 0 14px 12px; font-size: 12px; color: #8a8a8a; text-align: right; }
+</style>
+</head>
+<body>
+  <div class="ch"><i>З</i><div><b>Зачем слушать</b><span>канал о классическом джазе</span></div></div>
+  <article class="post">
+    <div class="strip" id="strip"></div>
+    <div class="dots" id="dots"></div>
+    <p class="cap">Летом 1958 года журнал Esquire готовил номер о джазе и поручил снимок Арту Кейну, арт-директору без студии и без единой профессиональной съёмки. Собрать музыкантов на гарлемской улице придумал то ли сам Кейн, то ли редактор журнала Роберт Бентон.
+
+12 августа, в десять утра, в час, когда приличные джазмены ещё спят, к дому 17 на 126-й улице пришли 57 музыкантов.</p>
+    <p class="meta">7 ноября</p>
+  </article>
+<script>
+  (function () {
+    var strip = document.getElementById("strip"), dots = document.getElementById("dots"), n = 9, html = "", d = "";
+    for (var i = 1; i <= n; i++) { html += '<img src="../../img/harlem/v2-' + i + '.jpg" alt="Карточка ' + i + '">'; d += "<b></b>"; }
+    strip.innerHTML = html; dots.innerHTML = d;
+    function mark() { var k = Math.round(strip.scrollLeft / strip.clientWidth); dots.querySelectorAll("b").forEach(function (b, j) { b.classList.toggle("on", j === k); }); }
+    strip.addEventListener("scroll", mark, { passive: true }); mark();
+    window.showCard = function (k) { strip.scrollTo({ left: k * strip.clientWidth, behavior: "smooth" }); };
+  })();
+</script>
+</body>
+</html>
