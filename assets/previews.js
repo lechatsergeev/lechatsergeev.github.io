@@ -109,7 +109,7 @@
       if (!win.showCard) return sleep(800);
       win.showCard(0);
       await sleep(1800);
-      for (var k = 1; k < 9 && live(); k++) { win.showCard(k); await sleep(1600); }
+      for (var k = 1; k < 6 && live(); k++) { win.showCard(k); await sleep(1600); }
       await sleep(1200);
     },
 

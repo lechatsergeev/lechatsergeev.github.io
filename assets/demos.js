@@ -411,6 +411,24 @@
     segment(root, show); show(root.querySelector('.seg button[aria-pressed="true"]').dataset.value);
   }
 
+  /* ---------- Редакция: любой выпуск и его версии (data-versions: {"ключ": [папка, число карточек]}) ---------- */
+  var ED_CAPTIONS = {
+    zod3: "В 1945 году пианистка Мэри Лу Уильямс стала играть в своей передаче на нью-йоркском радио WNEW новую сюиту, по одному знаку зодиака в неделю. Для пьес из Zodiac Suite она брала за образец людей, которых знала. У «Овна» было два прототипа, певица Билли Холидей и саксофонист Бен Уэбстер. На пластинке эту пьесу Уильямс сыграла вдвоём с контрабасистом.\n\nОдним из её Тельцов был Дюк Эллингтон, руководитель джазового оркестра. В пояснениях к сюите Уильямс писала, что хотела передать упрямство Тельца и поэтому закончила пьесу той же темой, с которой начала.\n\nСлушать альбом → Apple Music · Spotify\nФото: Уильям П. Готтлиб · Библиотека Конгресса США"
+  };
+  function issueDemo(root) {
+    var V = JSON.parse(root.dataset.versions), strip = $(root, ".tg-strip"), cap = $(root, ".tg-caption"), count = $(root, ".tg-count");
+    function show(k) {
+      var v = V[k], html = "";
+      for (var i = 1; i <= v[1]; i++) html += '<img src="img/' + v[0] + "-" + i + '.jpg" alt="Карточка ' + i + '"' + (i > 1 ? ' loading="lazy"' : "") + ">";
+      strip.innerHTML = html; strip.scrollLeft = 0;
+      if (cap) cap.textContent = ED_CAPTIONS[k] || "";
+      if (count) count.textContent = v[1] + " " + (v[1] < 5 ? "карточки" : "карточек") + " · листай вбок";
+    }
+    var first = root.querySelector('.seg button[aria-pressed="true"]');
+    if (first) segment(root, show);
+    show(first ? first.dataset.value : Object.keys(V)[0]);
+  }
+
   /* ---------- Редакция: согласование в личном чате (тексты из newsroom/telegram/bot.py) ---------- */
   function approveDemo(root) {
     var log = $(root, ".chat-log");
@@ -418,10 +436,10 @@
     function start() {
       log.innerHTML = "";
       var album = el("div", "msg bot tg-album");
-      album.innerHTML = [1, 2, 3, 6].map(function (i) { return '<img src="img/harlem/v2-' + i + '.jpg" alt="">'; }).join("") + '<span class="tg-more">+5</span>';
+      album.innerHTML = [1, 2, 3, 4].map(function (i) { return '<img src="img/news/zod3-' + i + '.jpg" alt="">'; }).join("") + '<span class="tg-more">+2</span>';
       log.appendChild(album);
-      botSay(log, "Источники\n• Critics At Large — Neglected Gem: A Great Day in Harlem\n• Jazz in Europe — The story behind the Iconic Jazz photograph\n• Wikipedia — Moanin'\n\nФото: Арт Кейн", null, 200);
-      botSay(log, HARLEM.v2.caption.split("\n\n")[0] + " …", [
+      botSay(log, "Источники\n• NPR Music / WBGO — Zodiac Killers: Star Signs In Jazz\n• Smithsonian Folkways Recordings — Zodiac Suite\n\nФото: Уильям П. Готтлиб · Библиотека Конгресса США", null, 200);
+      botSay(log, ED_CAPTIONS.zod3.split("\n\n")[0] + " …", [
         ["Согласовать и опубликовать сейчас", function (b) { lock(b); botSay(log, "Опубликовать в канал сейчас? Это увидят подписчики.", [["Да, опубликовать сейчас", function (x) { lock(x); botSay(log, "Здесь бот публикует выпуск. В демо в канал ничего не уходит."); }], ["Отмена", function (x) { lock(x); botSay(log, "Публикация отменена. Пакет не согласован."); }]]); }],
         ["Согласовать и запланировать", function (b) { lock(b); botSay(log, "Пакет согласован. В очереди на 18:00."); }],
         ["Править подпись", function (b) { lock(b); botSay(log, "Пришлите подпись целиком, как она должна выйти. Ссылку «Слушать» и фотокредит бот добавит сам."); }],
@@ -649,7 +667,7 @@
     draw();
   }
 
-  var DEMOS = { album: albumDemo, approve: approveDemo, versions: versionsDemo, flow: flowDemo, gitlog: gitlogDemo, objections: objectionsDemo, pricetag: tagDemo, chat: chatDemo, wish: wishDemo, onboard: onboardDemo, steps: stepsDemo, photo: photoDemo, dayoff: dayoffDemo, publish: publishDemo, compare: compareDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo };
+  var DEMOS = { issue: issueDemo, album: albumDemo, approve: approveDemo, versions: versionsDemo, flow: flowDemo, gitlog: gitlogDemo, objections: objectionsDemo, pricetag: tagDemo, chat: chatDemo, wish: wishDemo, onboard: onboardDemo, steps: stepsDemo, photo: photoDemo, dayoff: dayoffDemo, publish: publishDemo, compare: compareDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo };
   document.querySelectorAll("[data-demo]").forEach(function (root) {
     var f = DEMOS[root.dataset.demo];
     if (f) try { f(root); } catch (e) { root.insertAdjacentHTML("beforeend", '<p class="demo-note">Демо не запустилось в этом браузере.</p>'); }

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Выпуск «Великий день в Гарлеме» — демо</title>
+<title>Выпуск Zodiac Suite — демо</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -32,15 +32,13 @@
   <article class="post">
     <div class="strip" id="strip"></div>
     <div class="dots" id="dots"></div>
-    <p class="cap">Летом 1958 года журнал Esquire готовил номер о джазе и поручил снимок Арту Кейну, арт-директору без студии и без единой профессиональной съёмки. Собрать музыкантов на гарлемской улице придумал то ли сам Кейн, то ли редактор журнала Роберт Бентон.
-
-12 августа, в десять утра, в час, когда приличные джазмены ещё спят, к дому 17 на 126-й улице пришли 57 музыкантов.</p>
-    <p class="meta">7 ноября</p>
+    <p class="cap">В 1945 году пианистка Мэри Лу Уильямс стала играть в своей передаче на нью-йоркском радио WNEW новую сюиту, по одному знаку зодиака в неделю. Для пьес из Zodiac Suite она брала за образец людей, которых знала.</p>
+    <p class="meta">11 ноября</p>
   </article>
 <script>
   (function () {
-    var strip = document.getElementById("strip"), dots = document.getElementById("dots"), n = 9, html = "", d = "";
-    for (var i = 1; i <= n; i++) { html += '<img src="../../img/harlem/v2-' + i + '.jpg" alt="Карточка ' + i + '">'; d += "<b></b>"; }
+    var strip = document.getElementById("strip"), dots = document.getElementById("dots"), n = 6, html = "", d = "";
+    for (var i = 1; i <= n; i++) { html += '<img src="../../img/news/zod3-' + i + '.jpg" alt="Карточка ' + i + '">'; d += "<b></b>"; }
     strip.innerHTML = html; dots.innerHTML = d;
     function mark() { var k = Math.round(strip.scrollLeft / strip.clientWidth); dots.querySelectorAll("b").forEach(function (b, j) { b.classList.toggle("on", j === k); }); }
     strip.addEventListener("scroll", mark, { passive: true }); mark();
