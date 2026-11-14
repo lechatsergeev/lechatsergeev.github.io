@@ -212,6 +212,11 @@
     frame.setAttribute("tabindex", "-1");
     frame.setAttribute("aria-hidden", "true");
     frame.addEventListener("load", function () {
+      try {                                              // спрятать полосы прокрутки внутри превью
+        var st = frame.contentDocument.createElement("style");
+        st.textContent = "*{scrollbar-width:none}*::-webkit-scrollbar{display:none}";
+        frame.contentDocument.head.appendChild(st);
+      } catch (e) {}
       device.classList.add("ready");
       if (!calm) play(device, frame);
     });
