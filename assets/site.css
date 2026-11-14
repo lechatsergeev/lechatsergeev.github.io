@@ -364,29 +364,38 @@ button { font: inherit; color: inherit; }
 .project { position: relative; }
 .project .caption { text-decoration: none; color: inherit; display: grid; }
 .project .caption:hover h3 { text-decoration: underline; text-underline-offset: 4px; }
-.live-device {
-  position: relative; flex: none; align-self: flex-end;
-  width: clamp(220px, 25vw, 310px); height: 100%;
-  border: 8px solid #111; border-bottom: 0; border-radius: 40px 40px 0 0;
-  background: #fff; overflow: hidden;
-  box-shadow: 0 30px 60px -20px rgba(17, 18, 20, .3);
-}
-.live-device.browser-device { width: min(88%, 980px); border: 0; border-radius: 14px 14px 0 0; box-shadow: 0 30px 60px -20px rgba(17, 18, 20, .25), 0 0 0 1px rgba(17, 18, 20, .06); }
-.live-device.browser-device::before { content: ""; position: absolute; inset: 0 0 auto; height: 28px; z-index: 2;
-  background: radial-gradient(circle at 18px 14px, #e3e4e8 5px, transparent 6px), radial-gradient(circle at 36px 14px, #e3e4e8 5px, transparent 6px), radial-gradient(circle at 54px 14px, #e3e4e8 5px, transparent 6px), #fafafb;
-  border-bottom: 1px solid var(--line); }
-.live-device.browser-device iframe, .live-device.browser-device .poster { top: 28px; }
+.live-device { position: relative; flex: none; }
+.live-device .screen { position: absolute; inset: 0; overflow: hidden; background: #fff; }
 .live-device iframe { position: absolute; top: 0; left: 0; border: 0; transform-origin: 0 0; pointer-events: none; background: #fff; opacity: 0; transition: opacity .4s; }
 .live-device.ready iframe { opacity: 1; z-index: 1; }
 .live-device.ready .poster { visibility: hidden; }
 .live-device .poster { position: absolute; left: 0; width: 100%; top: 0; }
 .project:hover .stage > .live-device { transform: none; }
+.live-device.browser-device { align-self: flex-end; height: 100%; width: min(88%, 980px); border-radius: 14px 14px 0 0; overflow: hidden; background: #fff;
+  box-shadow: 0 30px 60px -20px rgba(17, 18, 20, .25), 0 0 0 1px rgba(17, 18, 20, .06); }
+.live-device.browser-device::before { content: ""; position: absolute; inset: 0 0 auto; height: 28px; z-index: 2;
+  background: radial-gradient(circle at 18px 14px, #e3e4e8 5px, transparent 6px), radial-gradient(circle at 36px 14px, #e3e4e8 5px, transparent 6px), radial-gradient(circle at 54px 14px, #e3e4e8 5px, transparent 6px), #fafafb;
+  border-bottom: 1px solid var(--line); }
+.live-device.browser-device .screen { top: 28px; }
 .stage .side { align-self: flex-end; }
+
+/* Настоящий айфон: официальная рамка iPhone 17 от Apple поверх живого экрана.
+   Экран 402×874 pt в рамке 450×920 pt; сверху 54 pt — зона статусбара. */
+.iphone { position: relative; width: clamp(240px, 26vw, 330px); aspect-ratio: 1350 / 2760; height: auto; flex: none;
+  filter: drop-shadow(0 30px 30px rgba(17, 18, 20, .22)); }
+.stage > .iphone { align-self: flex-start; }
+.iphone::after { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none;
+  background: url(../img/iphone-17.webp) 0 0 / 100% 100% no-repeat; }
+.iphone .screen { position: absolute; left: 5.333%; top: 2.5%; width: 89.333%; height: 95%; overflow: hidden;
+  border-radius: 12% / 5.6%; background: var(--sb, #fff); }
+.iphone .screen > .poster, .iphone .screen.banded > iframe { top: 6.18%; }
+.live-phone.iphone { height: auto; border: 0; border-radius: 0; box-shadow: none; background: none; overflow: visible; width: min(100%, 360px); margin: 0 auto; }
+.live-phone.iphone .screen > iframe { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.live-phone.iphone .screen.banded > iframe { height: 93.82%; }
+.live-phone.iphone .screen > video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 @media (max-width: 760px) {
-  .live-device { width: min(78%, 300px); }
-  .live-device.browser-device { width: min(78%, 300px); border: 8px solid #111; border-bottom: 0; border-radius: 40px 40px 0 0; }
-  .live-device.browser-device::before { display: none; }
-  .live-device.browser-device iframe, .live-device.browser-device .poster { top: 0; }
+  .iphone { width: min(72%, 290px); }
+  .live-phone.iphone { width: min(86%, 320px); }
   .stage .side { display: none; }
 }
 .stage-link { position: absolute; inset: 0; z-index: 5; }
@@ -593,5 +602,3 @@ button { font: inherit; color: inherit; }
 .vers.on i { opacity: 1; transform: none; }
 .vers-legend { text-align: center; margin-top: 14px; font: 500 14px "Ysabeau Office", Inter, sans-serif; color: #1b1814; }
 .s-news { background: linear-gradient(180deg, #ECE4D4 0%, #d9cfba 100%); }
-.reel-phone { width: min(100%, 340px); height: auto; aspect-ratio: 9 / 16; background: #000; }
-.reel-phone video { display: block; width: 100%; height: 100%; object-fit: cover; }

@@ -688,4 +688,30 @@
     entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
   }, { threshold: 0.08 });
   items.forEach(function (i) { io.observe(i); });
+
+  /* Живой экран на весь айфон: страница сдвигается вниз на высоту статусбара (54 pt),
+     как в настоящем телефоне, а её фон уходит под Dynamic Island */
+  function insetFrame(frame) {
+    var d, w;
+    try { d = frame.contentDocument; w = frame.contentWindow; void d.body; } catch (e) { frame.parentNode.classList.add("banded"); return; }
+    var st = d.createElement("style");
+    var sb = frame.closest(".iphone").style.getPropertyValue("--sb");   // цвет под статусбаром, если задан у рамки
+    st.textContent = "html{padding-top:54px!important}" + (sb ? "html,body{background:" + sb + "!important}" : "");
+    d.head.appendChild(st);
+    function shift() {                                   // шапки с position: fixed тоже опускаем под статусбар; фоны во весь экран не трогаем
+      d.querySelectorAll("body *").forEach(function (el) {
+        if (el.dataset.pfShifted) return;
+        var cs = w.getComputedStyle(el);
+        if (cs.position !== "fixed" && cs.position !== "sticky") return;
+        if (cs.top === "auto" || parseFloat(cs.top) >= 54 || el.offsetHeight > w.innerHeight * 0.6) return;
+        el.dataset.pfShifted = "1";
+        el.style.setProperty("top", (parseFloat(cs.top) + 54) + "px", "important");
+      });
+    }
+    shift();
+    for (var k = 1; k <= 12; k++) setTimeout(shift, k * 700);   // шапки, которые страница дорисует позже
+  }
+  document.querySelectorAll(".live-phone.iphone iframe").forEach(function (f) {
+    f.addEventListener("load", function () { insetFrame(f); });
+  });
 })();

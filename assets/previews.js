@@ -14,7 +14,7 @@
   function fit(device) {
     var frame = device.querySelector("iframe");
     if (!frame) return;
-    var w = +device.dataset.w, h = +device.dataset.h, s = device.clientWidth / w;
+    var host = frame.parentNode, w = +device.dataset.w, h = +device.dataset.h, s = host.clientWidth / w;
     frame.style.width = w + "px";
     frame.style.height = h + "px";
     frame.style.transform = "scale(" + s + ")";
@@ -199,9 +199,33 @@
       device.dataset.h = device.dataset.hPhone;
       var poster = device.querySelector(".poster");
       if (poster && device.dataset.posterPhone) poster.src = device.dataset.posterPhone;
+      device.classList.remove("browser-device"); device.classList.add("iphone");
     }
     device.visible = false;
   });
+
+  /* Живой экран на весь айфон: страница сдвигается вниз на высоту статусбара (54 pt),
+     как в настоящем телефоне, а её фон уходит под Dynamic Island */
+  function insetFrame(frame) {
+    var d, w;
+    try { d = frame.contentDocument; w = frame.contentWindow; void d.body; } catch (e) { frame.parentNode.classList.add("banded"); return; }
+    var st = d.createElement("style");
+    var sb = frame.closest(".iphone").style.getPropertyValue("--sb");   // цвет под статусбаром, если задан у рамки
+    st.textContent = "html{padding-top:54px!important}" + (sb ? "html,body{background:" + sb + "!important}" : "");
+    d.head.appendChild(st);
+    function shift() {                                   // шапки с position: fixed тоже опускаем под статусбар; фоны во весь экран не трогаем
+      d.querySelectorAll("body *").forEach(function (el) {
+        if (el.dataset.pfShifted) return;
+        var cs = w.getComputedStyle(el);
+        if (cs.position !== "fixed" && cs.position !== "sticky") return;
+        if (cs.top === "auto" || parseFloat(cs.top) >= 54 || el.offsetHeight > w.innerHeight * 0.6) return;
+        el.dataset.pfShifted = "1";
+        el.style.setProperty("top", (parseFloat(cs.top) + 54) + "px", "important");
+      });
+    }
+    shift();
+    for (var k = 1; k <= 12; k++) setTimeout(shift, k * 700);   // шапки, которые страница дорисует позже
+  }
 
   function load(device) {
     if (device.dataset.loaded) return;
@@ -217,10 +241,12 @@
         st.textContent = "*{scrollbar-width:none}*::-webkit-scrollbar{display:none}";
         frame.contentDocument.head.appendChild(st);
       } catch (e) {}
+      if (device.classList.contains("iphone")) insetFrame(frame);
       device.classList.add("ready");
       if (!calm) play(device, frame);
     });
-    device.insertBefore(frame, device.firstChild);
+    var host = device.querySelector(".screen") || device;
+    host.insertBefore(frame, host.firstChild);
     fit(device);
   }
 
@@ -234,7 +260,8 @@
     var live = function () { return device.visible && !document.hidden; };
     for (;;) {
       while (!live()) await sleep(400);
-      var viewH = device.clientHeight / (device.clientWidth / +device.dataset.w);
+      var fr = frame.getBoundingClientRect(), st = (device.closest(".stage") || device).getBoundingClientRect();
+      var viewH = (Math.min(fr.bottom, st.bottom) - fr.top) / (fr.width / +device.dataset.w);
       try { await script(win, live, viewH); } catch (e) { await sleep(2000); }
     }
   }
