@@ -8,7 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="schedule.css">
+<link rel="stylesheet" href="schedule.css?v=25">
+<link rel="stylesheet" href="glass.css?v=25">
 <style>
   /* Оболочка мини-приложения: те же фон и шрифт, что в боте */
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -18,10 +19,13 @@
   #gradient-canvas { width: 100%; height: 100%; display: block; }
   body { font-family: 'Onest', -apple-system, sans-serif; background: transparent; color: #111;
     font-variant-numeric: tabular-nums; padding: 26px 22px 40px; max-width: 480px; margin: 0 auto; }
-  .tabs { display: flex; gap: 18px; margin-bottom: 22px; font-size: 15px; }
-  .tabs span { color: #6b6b6b; }
-  .tabs b { font-weight: 600; border-bottom: 2px solid #111; padding-bottom: 3px; }
 </style>
+<script>
+/* Рамка телефона в портфолио уже настоящего экрана: рисуем вкладку на ширине iPhone (402) и уменьшаем целиком,
+   чтобы заголовок и вкладки не переносились раньше, чем в боте. */
+(function () { function fit() { var w = window.innerWidth; document.documentElement.style.zoom = w < 402 ? String(w / 402) : ""; }
+  fit(); addEventListener("resize", fit); })();
+</script>
 <script>
 /* Демо для портфолио: настоящий модуль вкладки «График» из бота,
    вместо сервера — выдуманный ресторан. Имена из презентации для коллег. */
@@ -68,11 +72,16 @@ window.selectTab = function () {};
 </head>
 <body>
 <div id="bg" aria-hidden="true"><canvas id="gradient-canvas"></canvas></div>
-<nav class="tabs" aria-hidden="true"><span>Чаевые</span><b>График</b><span>План</span></nav>
-<button id="tab-schedule" hidden></button>
+<div class="tabs-scroll"><nav class="app-tabs nimbus-nav" role="tablist" aria-label="Разделы">
+  <button id="tab-earnings" class="nimbus-item" role="tab" aria-selected="false" tabindex="-1">Деньги</button>
+  <button id="tab-schedule" class="nimbus-item" role="tab" aria-selected="true">График</button>
+  <button id="tab-sales" class="nimbus-item" role="tab" aria-selected="false" tabindex="-1">План</button>
+</nav></div>
 <section id="schedule-panel"></section>
 <script src="background.js"></script>
-<script src="schedule-grid.js?v=24"></script>
-<script src="schedule.js"></script>
+<script src="schedule-grid.js?v=25"></script>
+<script src="schedule.js?v=25"></script>
+<script src="liquid.js?v=25"></script>
+<script>try{window.LiquidWater&&LiquidWater.tabs(document.querySelector(".app-tabs"));}catch(e){}</script>
 </body>
 </html>

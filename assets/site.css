@@ -602,3 +602,14 @@ button { font: inherit; color: inherit; }
 .vers.on i { opacity: 1; transform: none; }
 .vers-legend { text-align: center; margin-top: 14px; font: 500 14px "Ysabeau Office", Inter, sans-serif; color: #1b1814; }
 .s-news { background: linear-gradient(180deg, #ECE4D4 0%, #d9cfba 100%); }
+
+/* Первые наблюдения: строка — действие, точки — люди */
+.obs { background: rgba(255,255,255,.82); border-radius: 18px; padding: 4px 20px; font-family: Onest, sans-serif; }
+.obs-row { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 10px 16px; padding: 14px 0; border-bottom: 1px solid rgba(17,17,17,.08); }
+.obs-row:last-child { border-bottom: 0; }
+.obs-row span { font-size: 15px; line-height: 1.35; }
+.obs-row b { font-size: 22px; font-weight: 600; }
+.obs-dots { grid-column: 1 / -1; display: flex; gap: 6px; }
+.obs-dots i { width: 14px; height: 14px; border-radius: 50%; background: rgba(17,17,17,.1); transition: background .45s var(--ease) calc(var(--d) * 45ms + 250ms); }
+.reveal.in .obs-dots i.on, .no-js .obs-dots i.on { background: #111; }
+@media (prefers-reduced-motion: reduce) { .obs-dots i { transition: none; } .obs-dots i.on { background: #111; } }

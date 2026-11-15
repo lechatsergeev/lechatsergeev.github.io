@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Onest:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="demos/schedule/schedule.css?v=24">
-<link rel="stylesheet" href="assets/site.css?v=24">
+<link rel="stylesheet" href="demos/schedule/schedule.css?v=25">
+<link rel="stylesheet" href="assets/site.css?v=25">
 </head>
 <body>
 <div class="wrap">
@@ -39,10 +39,10 @@
 
     <section>
       <h2>График</h2>
-      <p>Так график выглядит у официанта. Сверху свои смены, ниже вся команда.</p>
+      <p>Так график выглядит у официанта. Своя строка первой, под волнистой линией — вся команда.</p>
       <div class="demo reveal">
         <div class="demo-box bot-skin">
-          <div class="live-phone iphone"><div class="screen"><iframe src="demos/schedule/" title="Вкладка «График» мини-приложения на выдуманных данных" loading="lazy"></iframe></div></div>
+          <div class="live-phone iphone"><div class="screen"><iframe src="demos/schedule/?v=25" title="Вкладка «График» мини-приложения на выдуманных данных" loading="lazy"></iframe></div></div>
         </div>
         <p class="demo-note">Настоящая вкладка из бота. Имена выдуманные.</p>
       </div>
@@ -251,6 +251,26 @@
       <p>Сколько времени это экономит менеджеру, не знаем: замера не было. Как коллеги находят график, проверим на их телефонах.</p>
     </section>
     <section>
+      <h2>Первые наблюдения</h2>
+      <p>Чтобы видеть, как коллеги пользуются ботом, я встроил аналитику действий. Она знает, что человек открыл график или записал чаевые, но не видит ни сумм, ни заметок.</p>
+      <p>За месяц — 597 событий от 13 человек. Выводы делать рано: больше половины событий — служебные загрузки, а семеро подключились только 8 ноября.</p>
+      <div class="demo reveal">
+        <div class="demo-box bot-skin">
+          <div class="demo-top"><span class="demo-badge">15 октября — 13 ноября</span></div>
+          <div class="obs">
+            <div class="obs-row"><span>Пользовались ботом</span><b>13</b><div class="obs-dots" aria-hidden="true"><i class="on" style="--d:0"></i><i class="on" style="--d:1"></i><i class="on" style="--d:2"></i><i class="on" style="--d:3"></i><i class="on" style="--d:4"></i><i class="on" style="--d:5"></i><i class="on" style="--d:6"></i><i class="on" style="--d:7"></i><i class="on" style="--d:8"></i><i class="on" style="--d:9"></i><i class="on" style="--d:10"></i><i class="on" style="--d:11"></i><i class="on" style="--d:12"></i></div></div>
+            <div class="obs-row"><span>Смотрели график</span><b>7</b><div class="obs-dots" aria-hidden="true"><i class="on" style="--d:0"></i><i class="on" style="--d:1"></i><i class="on" style="--d:2"></i><i class="on" style="--d:3"></i><i class="on" style="--d:4"></i><i class="on" style="--d:5"></i><i class="on" style="--d:6"></i><i style="--d:7"></i><i style="--d:8"></i><i style="--d:9"></i><i style="--d:10"></i><i style="--d:11"></i><i style="--d:12"></i></div></div>
+            <div class="obs-row"><span>Возвращались к графику в три разных дня</span><b>5</b><div class="obs-dots" aria-hidden="true"><i class="on" style="--d:0"></i><i class="on" style="--d:1"></i><i class="on" style="--d:2"></i><i class="on" style="--d:3"></i><i class="on" style="--d:4"></i><i style="--d:5"></i><i style="--d:6"></i><i style="--d:7"></i><i style="--d:8"></i><i style="--d:9"></i><i style="--d:10"></i><i style="--d:11"></i><i style="--d:12"></i></div></div>
+            <div class="obs-row"><span>Записали чаевые</span><b>2</b><div class="obs-dots" aria-hidden="true"><i class="on" style="--d:0"></i><i class="on" style="--d:1"></i><i style="--d:2"></i><i style="--d:3"></i><i style="--d:4"></i><i style="--d:5"></i><i style="--d:6"></i><i style="--d:7"></i><i style="--d:8"></i><i style="--d:9"></i><i style="--d:10"></i><i style="--d:11"></i><i style="--d:12"></i></div></div>
+            <div class="obs-row"><span>Записали время ухода</span><b>1</b><div class="obs-dots" aria-hidden="true"><i class="on" style="--d:0"></i><i style="--d:1"></i><i style="--d:2"></i><i style="--d:3"></i><i style="--d:4"></i><i style="--d:5"></i><i style="--d:6"></i><i style="--d:7"></i><i style="--d:8"></i><i style="--d:9"></i><i style="--d:10"></i><i style="--d:11"></i><i style="--d:12"></i></div></div>
+          </div>
+        </div>
+        <p class="demo-note">Каждая точка — человек. Имён и сумм аналитика не хранит.</p>
+      </div>
+      <p>Что видно уже сейчас: к графику возвращаются — пятеро открывали его в три разных дня. Время ухода записал один человек, чаевые — двое, по разу.</p>
+      <p>Гипотеза: привычку создаёт график, а не деньги. Напоминание о смене — повод открыть бота и отметить время ухода, а оттуда часть коллег дойдёт до чаевых. Всех не жду: кому-то хватит графика. После запуска 16 ноября проверю, повторяют ли люди запись времени и переходят ли к чаевым. Не подтвердится — пересоберу сценарий.</p>
+    </section>
+    <section>
       <h2>Титры</h2>
       <dl class="credits">
         <dt>Продукт, интерфейс, тексты</dt><dd>Алексей Сергеев</dd>
@@ -282,7 +302,7 @@
   </footer>
 
 </div>
-<script src="demos/schedule/schedule-grid.js?v=24"></script>
+<script src="demos/schedule/schedule-grid.js?v=25"></script>
 <script src="assets/demos.js?v=24"></script>
 <script src="analytics.js?v=24"></script>
 </body>
