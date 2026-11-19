@@ -613,3 +613,27 @@ button { font: inherit; color: inherit; }
 .obs-dots i { width: 14px; height: 14px; border-radius: 50%; background: rgba(17,17,17,.1); transition: background .45s var(--ease) calc(var(--d) * 45ms + 250ms); }
 .reveal.in .obs-dots i.on, .no-js .obs-dots i.on { background: #111; }
 @media (prefers-reduced-motion: reduce) { .obs-dots i { transition: none; } .obs-dots i.on { background: #111; } }
+
+/* Один выходной между сменами: строка Вики на полмесяца */
+.rest { display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); gap: 3px; }
+.rest-d { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0 5px; border-radius: 8px; background: rgba(255,255,255,.35); font-family: Onest, sans-serif; }
+.rest-d small { font-size: 10px; color: rgba(17,17,17,.5); }
+.rest-d b { font-size: 14px; font-weight: 500; }
+.rest-d i { font-style: normal; font-size: 10px; min-height: 12px; color: rgba(17,17,17,.6); }
+.rest-d.on { background: #fff; box-shadow: inset 0 0 0 1.5px #4f89ab; }
+.rest-d.lone { background: rgba(169,50,50,.12); box-shadow: inset 0 0 0 1.5px #a93232; }
+.rest-d.lone i { color: #a93232; }
+.rest-count { margin: 14px 0 0; font-family: Onest, sans-serif; font-size: 15px; text-align: center; }
+@media (max-width: 560px) { .rest { grid-template-columns: repeat(8, minmax(0, 1fr)); } }
+
+/* Корзина в черновике графика */
+.trash { width: 100%; border-collapse: collapse; font-family: Onest, sans-serif; font-size: 14px; background: #fff; border-radius: 16px; overflow: hidden; }
+.trash th { font-weight: 400; font-size: 11px; color: rgba(17,17,17,.5); padding: 10px 4px 6px; text-align: center; }
+.trash th b { display: block; font-size: 15px; font-weight: 600; color: #111; }
+.trash td { padding: 10px 4px; text-align: center; border-top: 1px solid #eee; font-weight: 600; }
+.trash td.nm { text-align: left; padding-left: 14px; font-weight: 400; }
+.trash td.act { width: 1%; padding-right: 10px; }
+.trash td.act button { border: 0; border-radius: 999px; background: #f1f1f3; padding: 4px 10px; font: 13px Onest, sans-serif; cursor: pointer; white-space: nowrap; }
+.trash tr.gone td:not(.act) { opacity: .35; }
+.trash tr.gone td.act button { background: #111; color: #fff; }
+.trash-note { margin: 12px 0 0; font-family: Onest, sans-serif; font-size: 13px; color: rgba(17,17,17,.6); text-align: center; }

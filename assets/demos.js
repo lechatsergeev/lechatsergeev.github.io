@@ -245,7 +245,7 @@
     }
     function lines(list) { return list.map(function (x) { return x[0] + " " + x[1] + " — с " + x[2]; }).join("\n"); }
     drawCal([]);
-    log.innerHTML = '<div class="msg hint">Чат с ботом у Вики</div>';
+    log.innerHTML = '<div class="msg hint">Чат с ботом у Вики. Сообщение придёт, когда менеджер нажмёт «Опубликовать»</div>';
     pub.onclick = function () {
       pub.disabled = true; state.textContent = "Опубликовано · 11 человек получат смены";
       botSay(log, "Опубликован график на 16–30 ноября.\n\nТвои смены:\n" + lines(SHIFTS), null, 500);
@@ -667,7 +667,103 @@
     draw();
   }
 
-  var DEMOS = { issue: issueDemo, album: albumDemo, approve: approveDemo, versions: versionsDemo, flow: flowDemo, gitlog: gitlogDemo, objections: objectionsDemo, pricetag: tagDemo, chat: chatDemo, wish: wishDemo, onboard: onboardDemo, steps: stepsDemo, photo: photoDemo, dayoff: dayoffDemo, publish: publishDemo, compare: compareDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo };
+
+  /* ---------- Демо: один выходной между сменами (правило из roster.py, график выдуманный) ---------- */
+  function restDemo(root) {
+    var out = root.querySelector(".demo-out");
+    var DAYS = [16,17,18,19,20,21,22,23,24,25,26,27,28,29,30];
+    var WD = ["пн","вт","ср","чт","пт","сб","вс"];
+    var V = { before: "СВССВСВССВВСВСС", after: "ССВВССВВССВВССВ" };
+    function draw(v) {
+      var row = V[v], lone = 0, html = '<div class="rest">';
+      DAYS.forEach(function (d, i) {
+        var on = row[i] === "С", single = !on && row[i - 1] === "С" && row[i + 1] === "С";
+        if (single) lone++;
+        html += '<div class="rest-d' + (on ? " on" : "") + (single ? " lone" : "") + '"><small>' + WD[i % 7] + "</small><b>" + d + "</b><i>" + (on ? "11" : single ? "1 день" : "") + "</i></div>";
+      });
+      out.innerHTML = html + '</div><p class="rest-count">Одиночных выходных у Вики: <b>' + lone + "</b></p>";
+    }
+    segment(root, draw); draw("before");
+  }
+
+  /* ---------- Демо: убрать из черновика и вернуть (как в редакторе графика) ---------- */
+  function trashDemo(root) {
+    var out = root.querySelector(".demo-out");
+    var ROWS = [["Аня", ["10","","12","12",""]], ["Боря", ["","14","14","","10"]], ["Вика", ["12","","","11","11"]], ["Гоша", ["","10","10","","14"]]];
+    var gone = {};
+    function draw() {
+      var h = '<table class="trash"><thead><tr><th></th><th>пн<b>23</b></th><th>вт<b>24</b></th><th>ср<b>25</b></th><th>чт<b>26</b></th><th>пт<b>27</b></th><th></th></tr></thead><tbody>';
+      ROWS.forEach(function (r, i) {
+        h += '<tr class="' + (gone[i] ? "gone" : "") + '"><td class="nm">' + r[0] + "</td>" + r[1].map(function (c) { return "<td>" + c + "</td>"; }).join("") +
+          '<td class="act"><button type="button" data-i="' + i + '">' + (gone[i] ? "Вернуть" : "×") + "</button></td></tr>";
+      });
+      var any = Object.keys(gone).filter(function (k) { return gone[k]; }).length;
+      out.innerHTML = h + "</tbody></table>" + '<p class="trash-note">' + (any ? "Убранные остаются серыми со сменами. Вернуть можно до 30 ноября." : "Нажми ×, чтобы убрать человека из черновика.") + "</p>";
+      out.querySelectorAll("button[data-i]").forEach(function (b) { b.onclick = function () { gone[b.dataset.i] = !gone[b.dataset.i]; draw(); }; });
+    }
+    draw();
+  }
+
+  /* ---------- Демо: приглашение на тренинг и отчёт менеджеру (тексты из trainings.py) ---------- */
+  function trainDemo(root) {
+    var log = root.querySelector(".chat-log");
+    var SESSION = "ср, 25 ноября, 12:00–14:30 — Вина Италии";
+    function start() {
+      log.innerHTML = '<div class="msg hint">Вике, у которой 25-го выходной</div>';
+      botSay(log, "Новости: в твой выходной тренинг. Ты должен идти ☠️\n" + SESSION + ", ведёт Марина", [["Записаться: 25.11 Вина Италии", function (b) {
+        b.disabled = true;
+        var t = el("div", "msg hint", "Таблица открылась на свободной строке занятия. Вика вписала себя."); log.appendChild(t);
+        setTimeout(function () { var h = el("div", "msg hint", "24 ноября, 18:00 · менеджеру"); log.appendChild(h);
+          botSay(log, "Тренинг завтра: " + SESSION + ".\nЗаписались: Вика.\nБыл выходной, но не записались: Боря, Ева.", [["Сначала", function () { start(); }]], 200); }, 700);
+      }]], 0);
+    }
+    start();
+  }
+
+  /* ---------- Демо: подсказки по меню (правила поиска из menu_store.py упрощены, блюда выдуманные) ---------- */
+  function menuDemo(root) {
+    var log = root.querySelector(".chat-log"), form = root.querySelector(".chat-form"), input = form.querySelector("input");
+    var MENU = [
+      { name: "Говяжьи щёчки с пюре", weight: "320 г", allergens: ["молоко", "сельдерей"], comp: ["говяжьи щёчки", "картофельное пюре", "лук шалот", "красное вино", "сливочное масло"], serving: "глубокая тарелка", page: 14 },
+      { name: "Тыквенный суп", weight: "300 мл", allergens: ["молоко"], comp: ["тыква", "сливки", "лук", "имбирь"], serving: "бульонная чашка", page: 6 },
+      { name: "Салат с ростбифом", weight: "220 г", allergens: ["горчица", "яйцо"], comp: ["ростбиф", "руккола", "красный лук", "горчичная заправка"], serving: "плоская тарелка", page: 9 },
+      { name: "Сырники", weight: "250 г", allergens: ["глютен", "молоко", "яйцо"], comp: ["творог", "мука", "яйцо", "сметана"], serving: "плоская тарелка", page: 3 }
+    ];
+    function norm(t) { return t.toLowerCase().replace(/ё/g, "е").replace(/[^а-яa-z0-9 ]/g, " ").split(/\s+/).filter(Boolean); }
+    function stem(w) { return w.length > 4 ? w.slice(0, Math.max(4, w.length - 2)) : w; }
+    function card(d) {
+      return "<b>" + esc(d.name) + "</b> · " + esc(d.weight) + "\n\n<b>Аллергены:</b> " + esc(d.allergens.join(", ")) + "\n\n<b>Состав:</b>\n" +
+        d.comp.map(function (c) { return "• " + esc(c); }).join("\n") + "\n\n<b>Подача:</b> " + esc(d.serving) + "\n\n<i>Подсказки. Кухня, стр. " + d.page + "</i>";
+    }
+    function showCard(d) { var m = el("div", "msg bot", card(d)); setTimeout(function () { log.appendChild(m); log.scrollTop = log.scrollHeight; }, 280); }
+    function answer(text) {
+      var q = norm(text).filter(function (w) { return w !== "без"; });
+      // По названию — с окончаниями и опечатками в конце слова.
+      var named = MENU.filter(function (d) { var n = norm(d.name); return q.length && q.every(function (w) { return n.some(function (x) { return x.indexOf(stem(w)) === 0; }); }); });
+      if (named.length === 1) return showCard(named[0]);
+      // По составу и аллергенам — строго, целым словом.
+      // Окончания понимает, опечатки — нет: общее начало не короче max(4, длина короткого слова − 2), как same_word без опечаток.
+      function same(w, x) { if (w === x) return true; var n = 0; while (n < w.length && n < x.length && w[n] === x[n]) n++; return n >= Math.max(4, Math.min(w.length, x.length) - 2); }
+      var inside = MENU.filter(function (d) { var all = norm(d.comp.concat(d.allergens).join(" ")); return q.length && q.every(function (w) { return all.some(function (x) { return same(w, x); }); }); });
+      if (inside.length) {
+        var title = "Где есть «" + q.join(" ") + "» (по подсказкам):" + (norm(text).indexOf("без") >= 0 ? "\nПро остальные блюда спроси по названию — я покажу их аллергены." : "");
+        return botSay(log, title, inside.map(function (d) { return [d.name + " · " + d.weight, function () { showCard(d); }]; }));
+      }
+      botSay(log, "Не нашёл такого в меню. Напиши название блюда или продукт, например «лук».");
+    }
+    function say(text) { meSay(log, text); answer(text); }
+    form.addEventListener("submit", function (ev) { ev.preventDefault(); var v = input.value.trim(); if (v) { say(v); input.value = ""; } });
+    root.querySelectorAll(".chips button").forEach(function (b) { b.addEventListener("click", function () { say(b.textContent); }); });
+  }
+
+  /* ---------- Демо: вечернее сообщение о конце смены (текст из schedule_chat.py) ---------- */
+  function eveningDemo(root) {
+    var log = root.querySelector(".chat-log");
+    log.innerHTML = '<div class="msg hint">19 ноября, 23:10</div>';
+    botSay(log, "Во сколько заканчиваешь смену 19 ноября 2026? Ответь на это сообщение временем, например 23:30.\nА если были чаевые — напиши сумму, например «чай 1500».", null, 0);
+  }
+
+  var DEMOS = { issue: issueDemo, album: albumDemo, approve: approveDemo, versions: versionsDemo, flow: flowDemo, gitlog: gitlogDemo, objections: objectionsDemo, pricetag: tagDemo, chat: chatDemo, wish: wishDemo, onboard: onboardDemo, steps: stepsDemo, photo: photoDemo, dayoff: dayoffDemo, publish: publishDemo, compare: compareDemo, night: nightDemo, sums: sumsDemo, scroll: scrollDemo, cap: capDemo, coffee: coffeeDemo, hotel: hotelDemo, rest: restDemo, trash: trashDemo, train: trainDemo, menu: menuDemo, evening: eveningDemo };
   document.querySelectorAll("[data-demo]").forEach(function (root) {
     var f = DEMOS[root.dataset.demo];
     if (f) try { f(root); } catch (e) { root.insertAdjacentHTML("beforeend", '<p class="demo-note">Демо не запустилось в этом браузере.</p>'); }
