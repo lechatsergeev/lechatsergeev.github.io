@@ -560,7 +560,7 @@ button { font: inherit; color: inherit; }
 .flow-note { flex: 1; font-size: 13px; color: #6b6b6b; min-width: 160px; }
 .flow-pub { border: 0; border-radius: 10px; padding: 10px 16px; background: #111; color: #fff; font: 500 14px Onest, sans-serif; cursor: pointer; }
 .flow-pub:disabled { opacity: .35; cursor: default; }
-.flow-sheet .sg-scroll { overflow-x: auto; }
+.flow-sheet .sg-scroll { overflow-x: auto; scroll-snap-type: none; }   /* иначе первые дни прилипают под колонку имён */
 .flow-sheet table { --rh: 34px; font-size: 13px; }
 .flow-sheet td.sg-c { cursor: pointer; }
 .flow-chat { min-height: 200px; }
@@ -615,16 +615,15 @@ button { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) { .obs-dots i { transition: none; } .obs-dots i.on { background: #111; } }
 
 /* Один выходной между сменами: строка Вики на полмесяца */
-.rest { display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); gap: 3px; }
-.rest-d { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0 5px; border-radius: 8px; background: rgba(255,255,255,.35); font-family: Onest, sans-serif; }
-.rest-d small { font-size: 10px; color: rgba(17,17,17,.5); }
+.rest { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; max-width: 420px; margin: 0 auto; }
+.rest-h { text-align: center; font: 11px Onest, sans-serif; color: rgba(17,17,17,.5); }
+.rest-d { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; aspect-ratio: 1; min-width: 0; border-radius: 8px; background: rgba(255,255,255,.35); font-family: Onest, sans-serif; }
 .rest-d b { font-size: 14px; font-weight: 500; }
 .rest-d i { font-style: normal; font-size: 10px; min-height: 12px; color: rgba(17,17,17,.6); }
 .rest-d.on { background: #fff; box-shadow: inset 0 0 0 1.5px #4f89ab; }
 .rest-d.lone { background: rgba(169,50,50,.12); box-shadow: inset 0 0 0 1.5px #a93232; }
 .rest-d.lone i { color: #a93232; }
-.rest-count { margin: 14px 0 0; font-family: Onest, sans-serif; font-size: 15px; text-align: center; }
-@media (max-width: 560px) { .rest { grid-template-columns: repeat(8, minmax(0, 1fr)); } }
+.rest-count { margin: 18px 0 0; font-family: Onest, sans-serif; font-size: 15px; text-align: center; }
 
 /* Корзина в черновике графика */
 .trash { width: 100%; border-collapse: collapse; font-family: Onest, sans-serif; font-size: 14px; background: #fff; border-radius: 16px; overflow: hidden; }
@@ -637,3 +636,16 @@ button { font: inherit; color: inherit; }
 .trash tr.gone td:not(.act) { opacity: .35; }
 .trash tr.gone td.act button { background: #111; color: #fff; }
 .trash-note { margin: 12px 0 0; font-family: Onest, sans-serif; font-size: 13px; color: rgba(17,17,17,.6); text-align: center; }
+
+
+/* Черновик менеджера на телефоне: колонки уже — первая неделя помещается целиком, дальше листается;
+   у правого края затухание, чтобы было видно, что таблица продолжается. */
+@media (max-width: 560px) {
+  .flow-site { padding: 12px 10px; }
+  .flow-sheet table { font-size: 12px; }
+  .sg.flow-sheet .sg-name { padding: 0 6px 0 8px; }
+  .sg.flow-sheet td.sg-c { width: 30px; min-width: 30px; }
+  .sg.flow-sheet .sg-s { min-width: 26px; padding: 0 4px; }
+  .sg.flow-sheet .sg-gap { width: 8px; min-width: 8px; }
+  .flow-sheet .sg-scroll { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); }
+}

@@ -675,11 +675,12 @@
     var WD = ["пн","вт","ср","чт","пт","сб","вс"];
     var V = { before: "СВССВСВССВВСВСС", after: "ССВВССВВССВВССВ" };
     function draw(v) {
-      var row = V[v], lone = 0, html = '<div class="rest">';
+      // 16 ноября 2026 — понедельник: неделя на строку, как в календаре приложения.
+      var row = V[v], lone = 0, html = '<div class="rest">' + WD.map(function (w) { return '<span class="rest-h">' + w + "</span>"; }).join("");
       DAYS.forEach(function (d, i) {
         var on = row[i] === "С", single = !on && row[i - 1] === "С" && row[i + 1] === "С";
         if (single) lone++;
-        html += '<div class="rest-d' + (on ? " on" : "") + (single ? " lone" : "") + '"><small>' + WD[i % 7] + "</small><b>" + d + "</b><i>" + (on ? "11" : single ? "1 день" : "") + "</i></div>";
+        html += '<div class="rest-d' + (on ? " on" : "") + (single ? " lone" : "") + '"><b>' + d + "</b><i>" + (on ? "11" : single ? "1 день" : "") + "</i></div>";
       });
       out.innerHTML = html + '</div><p class="rest-count">Одиночных выходных у Вики: <b>' + lone + "</b></p>";
     }
