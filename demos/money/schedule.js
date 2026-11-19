@@ -1,0 +1,89 @@
+// Вкладка «График» в мини-приложении: опубликованный график всей команды.
+// На телефоне — имена и три дня, остальные листаются; повернул телефон — весь график на экран.
+(() => {
+  'use strict';
+  const $=id=>document.getElementById(id),tg=window.Telegram?.WebApp,G=window.ScheduleGrid;
+  const panel=$('schedule-panel'),tab=$('tab-schedule');
+  if(!panel||!tab||!G)return;
+  let data=null,busy=false,picked=null;
+  panel.classList.add('sg');
+  panel.innerHTML=`<header class="sg-head"><div><h1 id="sg-title"></h1><p id="sg-sub"></p></div>
+      <div class="sg-nav"><button type="button" id="sg-prev" aria-label="Предыдущий график">‹</button><button type="button" id="sg-next" aria-label="Следующий график">›</button><button type="button" class="sg-rotate" id="sg-expand" aria-label="Весь график" title="Весь график"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3.5" width="8" height="13" rx="1.8"/><rect x="8.5" y="13" width="12.5" height="7.5" rx="1.8" stroke-dasharray="2 2"/><path d="M14 4.5a5.5 5.5 0 0 1 5 5"/><path d="m17.3 8.6 1.7 1.4 1.4-1.7"/></svg></button></div></header>
+    <p id="sg-error" class="sg-error" role="alert"></p>
+    <section class="sg-sheet" id="sg-sheet" hidden aria-label="График смен"><div class="sg-scroll"><table id="sg-grid"></table></div>
+      <p class="sg-detail" id="sg-detail" role="status"></p></section>
+    <p id="sg-empty" class="sg-empty" hidden></p>
+    <button type="button" id="sg-site" class="sg-site" hidden>Составить график на сайте</button>`;
+  const grid=$('sg-grid'),sc=grid.parentElement,sheet=$('sg-sheet');
+  const scroll=G.scroller(grid,sc,{sheet});
+  const phone=matchMedia('(max-width: 700px)');
+  async function api(body={}){
+    let r;
+    // Сеть не ответила: отмечаем для исследования только тип сбоя, без содержимого.
+    try{r=await fetch('/api/schedule/view',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({...body,initData:tg?.initData||''}),signal:AbortSignal.timeout(20000)});}
+    catch(e){window.uxEvent?.('cabinet_load_error','schedule',e.name==='TimeoutError'?'timeout':'network');throw e;}
+    let json;try{json=await r.json();}catch(_){throw new Error('Сервер не ответил. Попробуй ещё раз.');}
+    if(!r.ok)throw new Error(json.error||'График пока недоступен.');
+    return json;
+  }
+  // Владелец аккаунта — первой строкой, остальные в прежнем порядке.
+  const people=()=>{const all=data.period.people;return [...all.filter(x=>x.me),...all.filter(x=>!x.me)];};
+  const options=()=>({days:data.period.days,people:people(),events:data.period.events,holidays:data.period.holidays,today:data.today,weekGap:false});
+  function render(){
+    const p=data.period,list=data.periods,index=p?list.findIndex(x=>x.start===p.start):-1;
+    const place=data.restaurants.find(r=>r.id===data.restaurant_id);
+    $('sg-title').textContent=p?G.period(p.start,p.end):'';
+    $('sg-sub').textContent=place&&data.restaurants.length>1?place.name:'';
+    $('sg-prev').hidden=$('sg-next').hidden=list.length<2;
+    $('sg-prev').disabled=index<=0;$('sg-next').disabled=index<0||index>=list.length-1;
+    $('sg-site').hidden=!(data.can_edit&&data.site_url);
+    sheet.hidden=!p;$('sg-empty').hidden=!!p;
+    if(!p){$('sg-empty').textContent='График ещё не опубликован.';return;}
+    const near=phone.matches;
+    grid.className=near?'sg-near':'';
+    grid.innerHTML=G.table({...options(),near,scrolls:true});
+    $('sg-expand').hidden=!near;
+    fitRows();
+    scroll.size();
+    picked=p.days.includes(data.today)?data.today:p.days[0];
+    scroll.go(picked,false);
+  }
+  // Весь список людей на первом экране: высота строк подбирается под окно (36–48 px).
+  function fitRows(){
+    grid.style.setProperty('--rh','48px');
+    if(!grid.classList.contains('sg-near'))return;
+    const top=grid.getBoundingClientRect().top+scrollY,room=innerHeight-top-84,rows=Math.max(1,data.period.people.length);
+    let rh=48;
+    for(let pass=0;pass<4&&rh>36;pass++){
+      grid.style.setProperty('--rh',rh+'px');
+      const over=grid.offsetHeight-room;if(over<=0)break;
+      rh=Math.max(36,rh-Math.ceil(over/(rows+1)));
+    }
+    grid.style.setProperty('--rh',rh+'px');
+  }
+  async function load(start){
+    if(busy)return;busy=true;$('sg-error').textContent='';
+    try{data=await api(start?{start,restaurant_id:data?.restaurant_id}:{});const mine=data.mine||{};tab.hidden=!data.available||(!data.periods.length&&!data.can_edit&&!(mine.requests||[]).length&&!(mine.weekdays||[]).length&&!mine.pattern);if(tab.hidden)return;render();window.dispatchEvent(new Event('schedule-tab-ready'));}
+    catch(e){$('sg-error').textContent=e.name==='TimeoutError'?'Ответ задерживается. Попробуй ещё раз.':e.message;}
+    finally{busy=false;}
+  }
+  const step=delta=>{const list=data.periods,i=list.findIndex(x=>x.start===data.period?.start);if(list[i+delta])load(list[i+delta].start);};
+  $('sg-prev').onclick=()=>step(-1);$('sg-next').onclick=()=>step(1);
+  grid.addEventListener('click',e=>{
+    const h=e.target.closest('thead th.sg-day');if(h){picked=h.dataset.day;scroll.go(picked);return;}
+    const c=e.target.closest('td.sg-c');if(!c)return;
+    const person=people()[+c.dataset.r],v=G.parse(person.cells[c.dataset.day]),off=person.off.includes(c.dataset.day);
+    const end=v&&v.start!=null?(v.end??Math.min(v.start+12,23)):null;
+    $('sg-detail').textContent=`${person.name} · ${G.dayName(c.dataset.day)} · ${v&&v.start!=null?`${G.clock(v.start)}–${G.clock(end)}${off?' вместо выходного':''}`:off?'обязательный выходной':'не работает'}`;
+  });
+  grid.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest('th.sg-day,td.sg-c')){e.preventDefault();e.target.click();}});
+  G.hover(grid);
+  addEventListener('resize',()=>{if(data?.period&&!panel.hidden){fitRows();scroll.size();scroll.go(picked,false);}});
+  phone.addEventListener('change',()=>{if(data?.period)render();});
+  const land=G.landscape(()=>!panel.hidden&&data?.period?options():null);
+  $('sg-expand').onclick=()=>land.expand();
+  $('sg-site').onclick=()=>{try{tg?.openLink?tg.openLink(data.site_url):window.open(data.site_url,'_blank','noopener');}catch(_){location.href=data.site_url;}};
+  tab.onclick=()=>{tab.dataset.opened='1';window.selectTab('schedule');if(data?.period){render();land.refresh();}else load();};
+  load();
+})();

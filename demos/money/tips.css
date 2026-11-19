@@ -1,0 +1,58 @@
+[hidden] { display:none!important; }
+#tips-dashboard { color:var(--ink); }
+.dashboard-controls { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.period-link,.privacy-link { border:0; background:none; padding:8px 0; color:var(--ink); font:400 14px 'Onest',sans-serif; cursor:pointer; text-align:left; }
+.privacy-link { text-align:right; white-space:nowrap; }
+.range-backdrop { position:fixed; inset:0; z-index:85; display:flex; align-items:end; background:rgba(0,0,0,.38); }
+.range-picker { width:100%; max-width:480px; margin:0 auto; padding:20px 20px calc(20px + env(safe-area-inset-bottom)); border-radius:18px 18px 0 0; background:#fff; box-shadow:0 -6px 28px #0001; }
+.range-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.range-head h2 { font:400 21px 'Onest',sans-serif; }
+.range-head button { border:0; background:none; color:var(--ink); font:22px 'Onest',sans-serif; min-width:40px; min-height:40px; }
+.range-option { display:flex; justify-content:space-between; align-items:center; width:100%; min-height:52px; padding:0; border:0; border-bottom:1px solid #eee; background:none; color:var(--ink); text-align:left; font:400 16px 'Onest',sans-serif; cursor:pointer; }
+.range-option small { font-size:13px; color:#64646a; }
+.range-option.on::after { content:'✓'; font-size:16px; }
+.range-option:last-child { border-bottom:0; }
+#tips-error { color:#8d2b39; font-size:13px; margin-top:12px; }
+#tips-error:empty { display:none; }
+/* Вкладка «Чаевые»: слева часы, справа деньги — грязные, а под ними чистые и расходы (чистые — часть чаевых, не часов).
+   Кегли по золотой пропорции и размеры подбирает tips.js под колонки; без скрипта работают значения по умолчанию. */
+.tips-hero { display:grid; grid-template-columns:.85fr 1fr; column-gap:16px; align-items:start; padding:26px 0 0; }
+.tips-hero.wide { grid-template-columns:1.2fr 1fr; }
+.tips-money { display:grid; row-gap:20px; min-width:0; }
+.tips-sub { display:grid; grid-template-columns:1fr 1fr; column-gap:14px; }
+.tips-cell { display:flex; flex-direction:column; justify-content:flex-start; align-self:start; min-width:0; padding:0; border:0; background:none; color:var(--ink); text-align:left; font:inherit; }
+button.tips-cell { cursor:pointer; }
+.tips-cell span { display:block; color:var(--accent); font:400 13px 'Onest',sans-serif; }
+.tips-cell.plain span { color:var(--ink); }
+.tips-cell strong { display:block; margin-top:10px; font:400 var(--small,17px)/1 'Prata',Georgia,serif; letter-spacing:-.05em; white-space:nowrap; font-variant-numeric:lining-nums; }
+.tips-cell.tips-lg strong { font-size:var(--big,28px); margin-top:12px; }
+.tips-cell.tips-hours strong { font-size:var(--huge,94px); line-height:.9; margin-top:var(--huge-top,12px); letter-spacing:-.06em; }
+.tips-hero button:disabled { cursor:default; }
+.tips-placeholder { display:inline-block; width:3.2ch; border-radius:8px; background:rgba(17,17,17,.1); color:transparent; }
+.detail-backdrop { position:fixed; inset:0; z-index:88; display:flex; align-items:end; background:rgba(0,0,0,.38); }
+.detail-sheet { box-sizing:border-box; width:100%; max-width:480px; max-height:88vh; margin:0 auto; padding:20px 20px calc(20px + env(safe-area-inset-bottom)); overflow:auto; border-radius:18px 18px 0 0; background:#fff; color:var(--ink); box-shadow:0 -6px 28px #0001; }
+.detail-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.detail-head h2 { margin:0; font:400 20px 'Onest',sans-serif; }
+.detail-head button { flex:0 0 40px; min-height:40px; border:0; background:none; color:var(--ink); font:22px 'Onest',sans-serif; }
+#tips-detail-status { min-height:1em; color:#8d2b39; font:400 13px 'Onest',sans-serif; }
+.detail-totals { display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:12px 0 16px; border-bottom:1px solid #e9e9e9; font:400 13px 'Onest',sans-serif; }
+.detail-totals strong { display:block; margin-top:4px; font:400 23px 'Prata',Georgia,serif; }
+.detail-row { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:13px 0; border-bottom:1px solid #eee; }
+.detail-row span { display:block; color:#64646a; font:400 13px 'Onest',sans-serif; }
+.detail-row strong { display:block; margin-top:3px; font:400 18px 'Onest',sans-serif; }
+.detail-row button { flex:0 0 auto; border:0; background:none; color:var(--accent); font:400 13px 'Onest',sans-serif; }
+.detail-empty { color:#64646a; font:400 14px 'Onest',sans-serif; }
+.detail-form { display:grid; gap:12px; padding-top:18px; }
+.detail-form label { display:block; font:400 13px 'Onest',sans-serif; }
+.detail-form input,.detail-form select { box-sizing:border-box; display:block; width:100%; min-height:46px; margin-top:6px; padding:8px 12px; border:1px solid #ddd; border-radius:9px; background:#f7f7f8; color:var(--ink); font:400 16px 'Onest',sans-serif; }
+.detail-form button,.detail-primary { min-height:46px; padding:9px 14px; border:0; border-radius:9px; background:var(--ink); color:white; font:400 14px 'Onest',sans-serif; }
+.detail-primary { width:100%; margin-top:18px; }
+.detail-edit-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.detail-edit-actions #tips-delete { background:#f2eded; color:#8d2b39; }
+.tips-disclosure { border:0; }
+.tips-disclosure>summary { cursor:pointer; }
+.tips-actions { display:flex; gap:25px; border:0; padding:0; margin-top:54px; }
+.tips-actions .btn { width:auto; margin:0; padding:8px 0; border:0; background:none; box-shadow:none; color:var(--ink); font:400 14px 'Onest',sans-serif; }
+.text-action { border:0; background:none; padding:10px 0; font:14px 'Onest',sans-serif; color:var(--ink); }
+.app-tabs :focus-visible,#tips-dashboard :focus-visible,.calendar-disclosure :focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+@media(max-width:370px) { .privacy-link,.period-link {font-size:12px} }

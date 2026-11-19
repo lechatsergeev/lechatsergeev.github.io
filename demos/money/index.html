@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta http-equiv="Cache-Control" content="no-store">
+<title>Моя смена</title>
+<link rel="stylesheet" href="tips.css">
+<link rel="stylesheet" href="schedule.css">
+<meta name="robots" content="noindex">
+<script src="demo-stub.js"></script>
+<script src="compat.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Prata&display=swap">
+<script src="background.js" defer></script>
+<style>
+  :root {
+    --ink: #111111;
+    --ink-soft: #6b6b6b;
+    --faint: #cfcfcf;
+    --track: #ececec;
+    /* Синий занят одним смыслом — счёт. Количество кодируется темнотой. */
+    --cash: #a7c6dc;   /* наличка — светлее */
+    --card: #4f89ab;   /* карта — насыщеннее */
+    --paper: #ffffff;
+    /* В небольших числах Onest сохраняет ровные табличные цифры. */
+    --font-mono: 'Onest', -apple-system, sans-serif;
+  }
+  /* Утилита для цифр внутри обычного текста («Июль · 12 смен») */
+  .num { font-family: var(--font-mono); font-weight: 500; }
+  /* Разделитель тысяч у toLocaleString — неразрывный пробел. В моноширинном
+     он шириной с цифру и разрывает число надвое: «12  400» читается как два
+     числа. word-spacing поджимает только пробелы, цифры не трогает. */
+  .hero, .r .val, .r .tag, .hist-amt, .num { word-spacing: -0.3em; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: var(--page, #efc1da); }
+  /* До первого кадра шейдера — почти белый, как начало анимации открытия (иначе на миг виден старый градиент).
+     Полосатый градиент — только запасной, если WebGL нет (background.js ставит .fallback). */
+  #bg { position:fixed;inset:0;z-index:-1;pointer-events:none;background-color:#f6f6f6; }
+  #bg.fallback {
+    background-color:#EFC1DA;
+    background-image:linear-gradient(90deg,#EFC1DA 0%,#EFC1DA 20%,#CEC99F 23.9%,#CEC99F 51.1%,#DCD6F6 58.9%,#DCD6F6 81.1%,#B5D0D9 85%,#B5D0D9 100%);
+  }
+  #gradient-canvas { width:100%;height:100%;display:block; }
+  body {
+    font-family: 'Onest', -apple-system, sans-serif;
+    background: transparent; color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    padding: 26px 22px 40px; max-width: 480px; margin: 0 auto;
+  }
+  html.tg-full body {
+    padding-top: calc(26px + var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));
+    padding-bottom: calc(40px + var(--tg-safe-area-inset-bottom, 0px));
+  }
+  .head { font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 24px; }
+  .hero-label { font-size: 13px; color: var(--ink-soft); }
+  .hero { font-family: var(--font-mono); font-size: 40px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 20px; white-space: nowrap; }
+  @keyframes blurIn { from { filter: blur(12px); opacity: 0; } to { filter: blur(0); opacity: 1; } }
+  .hero.blur-in { animation: blurIn 0.85s cubic-bezier(0.2, 0.6, 0.2, 1); }
+  .r { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+  .r .lbl { font-size: 14px; white-space: nowrap; }
+  .r .tag { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--ink-soft); white-space: nowrap; }
+  .r .val { font-family: var(--font-mono); font-size: 15px; font-weight: 500; white-space: nowrap; margin-left: auto; }
+  .plan { margin: 18px 0 0; }
+  .plan .bar-track { height: 3px; background: var(--track); overflow: hidden; margin-top: 7px; }
+  .plan .bar-fill { height: 100%; background: var(--ink); width: 0; }
+  .btn { display: block; width: 100%; text-align: center; padding: 14px; border-radius: 10px; font-size: 14px; font-weight: 400; border: none; cursor: pointer; font-family: inherit; background: var(--ink); color: #fff; margin-top: 24px; }
+  .btn:active { background: #333; }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--faint); margin-top: 10px; }
+  .btn-ghost:active { background: #f4f4f4; }
+  #err { font-size: 13px; color: #780000; padding: 16px 0; display: none; }
+
+  /* ── панель «Траты за смену» (внутри мини-апа) ── */
+  #spend { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 90; display: none; }
+  #spend.on { display: flex; align-items: flex-end; }
+  .sheet { background: #fff; width: 100%; max-width: 480px; margin: 0 auto; border-radius: 18px 18px 0 0; padding: 22px 20px 26px; }
+  .sheet-title { font-size: 17px; font-weight: 400; }
+  .sheet-sub { font-size: 13px; color: var(--ink-soft); margin: 2px 0 16px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .chip { font-size: 14px; font-weight: 400; padding: 9px 16px; border-radius: 20px; border: 1px solid var(--faint); background: #fff; cursor: pointer; font-family: inherit; color: var(--ink); }
+  .chip.sel { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .spend-inputs { display: none; gap: 8px; margin-bottom: 6px; }
+  .spend-inputs.on { display: flex; }
+  #day details[open] .spend-inputs { display: flex; }
+  [hidden] { display: none !important; }
+  .spend-inputs input { flex: 1; min-width: 0; font-family: inherit; font-size: 15px; padding: 11px 12px; border: 1px solid var(--faint); border-radius: 10px; background: #fff; }
+  #spend-amount { font-family: var(--font-mono); }
+  .spend-inputs input:focus { outline: none; border-color: var(--ink); }
+  #spend-submit { flex: 0 0 auto; padding: 11px 16px; border-radius: 10px; border: none; background: var(--ink); color: #fff; font-weight: 400; font-family: inherit; font-size: 15px; cursor: pointer; }
+  .spend-note { font-size: 13px; color: var(--ink-soft); min-height: 18px; margin-bottom: 12px; }
+
+  /* ── разбор дня из календаря ── */
+  #day { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 92; display: none; }
+  #day.on { display: flex; align-items: flex-end; }
+  #day .sheet { max-height: min(85vh, 760px); overflow-y: auto; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+  .day-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+  .day-header .sheet-title { margin: 0; }
+  #day-close { flex: 0 0 auto; min-height: 44px; padding: 8px 0 8px 12px; border: 0; background: none; color: var(--ink-soft); font: inherit; font-size: 14px; cursor: pointer; }
+  .day-edit { border-top: 1px solid #eee; margin-top: 12px; padding-top: 2px; }
+  #day details:not([open]) > :not(summary) { display: none !important; }
+  .day-edit summary { cursor: pointer; padding: 12px 0; font-size: 15px; list-style-position: inside; }
+  .day-edit[open] summary { margin-bottom: 6px; }
+  .day-tip-fields { display: none; gap: 14px; }
+  #day details[open] .day-tip-fields { display: grid; }
+  .day-tip-fields label,.day-shift-fields label { font-size: 13px; color: var(--ink-soft); }
+  .day-tip-fields input[type=number],.day-shift-fields input[type=time] { display: block; width: 100%; min-height: 48px; margin-top: 6px; padding: 10px 12px; border: 1px solid var(--faint); border-radius: 10px; background: #fff; color: var(--ink); font: 16px 'Onest',sans-serif; }
+  .day-account { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; border: 0; }
+  .day-account-title { grid-column: 1 / -1; margin-bottom: 1px; font-size: 13px; color: var(--ink-soft); }
+  .day-account label { position: relative; cursor: pointer; }
+  .day-account input { position: absolute; opacity: 0; }
+  .day-account span { display: flex; align-items: center; justify-content: center; min-height: 44px; border: 1px solid var(--faint); border-radius: 10px; color: var(--ink); font-size: 14px; }
+  .day-account input:checked + span { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .day-account input:focus-visible + span,#day button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .day-primary { min-height: 48px; margin-top: 14px; font-size: 15px; }
+  .day-tip-record { display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: center; gap: 10px; min-height: 56px; border-bottom: 1px solid #eee; }
+  .day-tip-record:first-child { margin-top: 12px; }
+  .day-tip-record span { font-size: 14px; }
+  .day-tip-record strong { font-size: 15px; font-weight: 500; white-space: nowrap; }
+  .day-tip-record button { min-height: 44px; padding: 8px 0 8px 8px; border: 0; background: none; color: #8c3838; font: inherit; font-size: 13px; cursor: pointer; }
+  .day-shift-fields { display: none; grid-template-columns: 1fr 1fr; gap: 12px; }
+  #day details[open] .day-shift-fields { display: grid; }
+  .day-shift-actions { display: flex; align-items: center; gap: 14px; margin: 14px 0 6px; }
+  .day-shift-actions .btn { flex: 1; width: auto; min-height: 48px; margin: 0; }
+  .day-shift-actions #day-shift-delete { flex: 0 0 auto; border: 0; background: none; color: #8c3838; padding: 10px 0; }
+  .day-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f2f2f2; }
+  .day-row:last-child { border-bottom: none; }
+  .day-row .k { font-size: 14px; color: var(--ink-soft); }
+  .day-row .v { font-family: var(--font-mono); font-size: 15px; font-weight: 500; white-space: nowrap; word-spacing: -0.3em; }
+  .day-row.total { border-top: 1px solid var(--ink); border-bottom: none; margin-top: 4px; padding-top: 12px; }
+  .day-row.total .k { color: var(--ink); font-weight: 400; font-size: 15px; }
+  .day-row.total .v { font-size: 19px; font-weight: 400; }
+  .day-note { font-size: 14px; color: var(--ink-soft); padding: 10px 0 2px; }
+  #day-status:empty { display: none; }
+
+  /* ── история и правки ── */
+  #history { position: fixed; inset: 0; background: #fff; z-index: 95; display: none; overflow-y: auto; }
+  #history.on { display: block; }
+  .hist-inner { max-width: 480px; margin: 0 auto; padding: 24px 20px 40px; }
+  .hist-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .hist-title { font-size: 18px; font-weight: 400; }
+  .hist-x { background: none; border: none; font-family: inherit; font-size: 14px; font-weight: 400; color: var(--ink-soft); cursor: pointer; }
+  .hist-item { border-bottom: 1px solid #f0f0f0; }
+  .hist-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 2px; cursor: pointer; }
+  .hist-cat { font-size: 15px; font-weight: 400; }
+  .hist-meta { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  /* Дата и время моноширинные (колонка выравнивается), название счёта — текст */
+  .hist-meta .txt { font-family: 'Onest', -apple-system, sans-serif; }
+  .hist-amt { font-family: var(--font-mono); font-size: 15px; font-weight: 400; white-space: nowrap; margin-left: 12px; }
+  .hist-edit { display: none; padding: 2px 2px 16px; }
+  .hist-item.open .hist-edit { display: block; }
+  .hist-edit-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+  .hist-edit input { flex: 1; min-width: 0; font-family: var(--font-mono); font-size: 15px; padding: 10px 12px; border: 1px solid var(--faint); border-radius: 10px; }
+  .hist-edit input:focus { outline: none; border-color: var(--ink); }
+  .acc-toggle { display: flex; gap: 6px; }
+  .acc-btn { font-size: 13px; font-weight: 400; padding: 9px 13px; border-radius: 18px; border: 1px solid var(--faint); background: #fff; cursor: pointer; font-family: inherit; color: var(--ink); }
+  .acc-btn.sel { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .hist-actions { display: flex; gap: 8px; }
+  .hist-save { flex: 1; padding: 11px; border: none; border-radius: 10px; background: var(--ink); color: #fff; font-weight: 400; font-family: inherit; font-size: 14px; cursor: pointer; }
+  .hist-del { padding: 11px 16px; border: 1px solid #e0b4b4; border-radius: 10px; background: #fff; color: #a02020; font-weight: 400; font-family: inherit; font-size: 14px; cursor: pointer; }
+  .hist-empty { font-size: 14px; color: var(--ink-soft); padding: 20px 2px; }
+
+  /* ── шапка календаря с листанием месяцев ── */
+  .cal-head { display: flex; align-items: center; justify-content: space-between; margin: 22px 0 12px; }
+  .cal-title { font-size: 14px; font-weight: 400; }
+  .cal-nav { background: none; border: none; font-family: inherit; font-size: 24px; line-height: 1; color: var(--ink); cursor: pointer; padding: 2px 14px; border-radius: 8px; }
+  .cal-nav:disabled { color: var(--faint); cursor: default; }
+  .cal-nav:active:not(:disabled) { background: rgba(0,0,0,.06); }
+  .cal-sum { font-size: 13px; color: var(--ink-soft); margin-top: 10px; min-height: 18px; }
+  .cal-hint { font-size: 12px; line-height: 1.45; color: var(--ink-soft); margin-top: 8px; }
+  .iphone-calendar { margin-top:22px; }
+  .iphone-calendar-toggle { width:100%; min-height:48px; border:1px solid var(--accent); border-radius:10px; background:transparent; color:var(--accent); padding:10px 14px; font:400 14px 'Onest',sans-serif; text-align:center; cursor:pointer; }
+  .iphone-calendar-toggle:disabled { opacity:.55; cursor:default; }
+  .iphone-calendar-panel { padding:14px 0 4px; font:400 13px/1.5 'Onest',sans-serif; }
+  .iphone-calendar-panel p { margin:0 0 12px; }
+  .iphone-calendar-panel input { box-sizing:border-box; width:100%; min-height:44px; padding:9px 11px; border:1px solid var(--ink-soft); border-radius:9px; background:var(--tile); color:var(--ink); font:400 13px 'Onest',sans-serif; }
+  .iphone-calendar-actions { display:flex; flex-wrap:wrap; gap:8px 18px; margin:12px 0; }
+  .iphone-calendar-actions button { border:0; background:none; color:var(--accent); padding:8px 0; font:400 13px 'Onest',sans-serif; cursor:pointer; }
+  .iphone-calendar-help { margin-top:10px; color:var(--ink-soft); font-size:12px; }
+  .iphone-calendar-help summary { cursor:pointer; }
+  .iphone-calendar-manage { margin-top:8px; }
+  .iphone-calendar-panel .iphone-calendar-note { color:var(--ink-soft); font-size:12px; }
+  #iphone-calendar-status { color:var(--ink-soft); font-size:12px; }
+  .cal-grid.loading { opacity: .45; }
+  .cal-wd { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 5px; }
+  .cal-wd span { font-size: 10px; color: var(--ink-soft); text-align: center; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+  .cal-cell { aspect-ratio: 1; border: 0; padding: 0; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); background: rgba(255,255,255,0.35); cursor: pointer; }
+  .cal-cell:disabled { cursor: default; opacity: .55; }
+  .cal-time { font-size: 8px; line-height: 1.1; white-space: nowrap; margin-top: 2px; letter-spacing: -.3px; }
+  .cal-cell.empty { background: transparent; }
+  :root {
+    --porcelain:#fffffc;--page:#efc1da;--tile:var(--porcelain);--accent:#343157;
+    --ink:#181617;--ink-soft:#4f474d;
+  }
+  /* Original flat calendar; only the subscription button uses glass. */
+  .cal-cell { aspect-ratio:1;width:100%;min-width:0;border-radius:8px;background:rgba(255,255,255,.35);
+    font-family:'Onest',sans-serif;font-size:14px;line-height:1.2;color:var(--ink-soft); }
+  .cal-cell.shift { box-shadow:inset 0 0 0 1.5px var(--card); }
+  .cal-cell.shift.dark { box-shadow:inset 0 0 0 1.5px #9ecbe8; }
+  .cal-cell.today { box-shadow:inset 0 0 0 2px var(--ink);color:var(--ink);font-weight:400; }
+  .cal-cell.today.dark { box-shadow:inset 0 0 0 2px #fff;color:#fff; }
+  .cal-cell[data-wish="required"],.cal-cell[data-wish="required"].today { box-shadow:inset 0 0 0 1.5px #a93232; }
+  .cal-cell[data-wish="preferred"],.cal-cell[data-wish="preferred"].today { box-shadow:inset 0 0 0 1.5px #b18400; }
+  #day-wish-actions { flex-wrap:wrap; }
+  .days-off-beta { margin:12px 0 0; font-size:15px; }
+  .days-off-beta a { color:inherit; text-decoration:underline; text-underline-offset:3px; }
+  #day-wish-actions[hidden] { display:none; }
+  .cal-cell.empty { background:none;box-shadow:none; }
+  .cal-time { font-size:11px;line-height:1.05;letter-spacing:0;white-space:normal;max-width:100%; }
+  .cal-title { font-size:15px;font-weight:400; }
+  .cal-nav { min-height:44px;min-width:44px; }
+  .iphone-calendar-toggle {
+    background:linear-gradient(145deg,rgba(255,255,255,.22),rgba(255,255,255,.08));
+    border:1px solid rgba(255,255,255,.5);border-radius:16px;color:var(--accent);min-height:50px;
+    -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 8px 24px rgba(52,49,87,.05);
+  }
+  .cal-cell:focus-visible,.iphone-calendar-toggle:focus-visible { outline:2px solid var(--accent);outline-offset:2px; }
+  .cal-cell:active:not(:disabled),.iphone-calendar-toggle:active:not(:disabled) { background-color:rgba(255,255,252,.6); }
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
+    .iphone-calendar-toggle { background:rgba(255,255,252,.5); }
+  }
+  @media (prefers-reduced-transparency:reduce) {
+    .iphone-calendar-toggle { background:var(--tile);-webkit-backdrop-filter:none;backdrop-filter:none; }
+  }
+  .calendar-disclosure { margin-top:28px; border:0; }
+  .calendar-disclosure>summary { font-size:24px; color:var(--ink); font-weight:400; padding:0 0 18px; }
+  .app-footer { display:flex; flex-direction:row; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; border:0; margin:48px 0 10px; padding:0; }
+  .app-footer button { appearance:none; -webkit-appearance:none; border:0; border-radius:0; box-shadow:none; background:transparent; padding:8px 0; min-height:40px; color:var(--ink); font:400 clamp(10px, 3vw, 12px) 'Onest',sans-serif; white-space:nowrap; cursor:pointer; }
+  #help-panel { position:fixed; inset:0; z-index:100; background:rgba(0,0,0,.35); display:none; align-items:flex-end; }
+  #help-panel.on { display:flex; }
+  #help-panel .sheet { max-height:min(85vh,760px); overflow-y:auto; padding-bottom:calc(20px + env(safe-area-inset-bottom)); }
+  .help-head { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:20px; }
+  .help-head button { border:0; background:transparent; font:inherit; color:var(--ink-soft); padding:8px 0; min-height:44px; cursor:pointer; }
+  .help-copy { font-size:14px; line-height:1.5; color:var(--ink-soft); margin-bottom:16px; }
+  .help-action { display:block; width:100%; border:1px solid var(--faint); border-radius:12px; background:#fff; padding:16px; margin:10px 0; text-align:left; font:inherit; font-size:16px; color:var(--ink); cursor:pointer; }
+  .help-action:active { background:#f4f4f4; }
+  .help-action.primary { background:var(--ink); border-color:var(--ink); color:#fff; }
+  .help-status { font-size:13px; line-height:1.4; color:var(--ink-soft); min-height:0; }
+  .help-status.error { color:#8d2b39; }
+  .help-manual { display:inline-block; font-size:13px; margin-top:8px; color:var(--accent); }
+  .help-question { border-bottom:1px solid var(--faint); padding:16px 0; }
+  .help-question summary { cursor:pointer; font-size:15px; list-style:none; }
+  .help-question summary::-webkit-details-marker { display:none; }
+  .help-question summary::after { content:'›'; float:right; }
+  .help-question[open] summary::after { content:'⌄'; }
+  .help-question p { margin-top:12px; font-size:14px; line-height:1.5; color:var(--ink-soft); }
+  .help-question p + p { margin-top:8px; }
+  #ux-access-retry:not([hidden]) { width:100%; text-align:left; }
+  .calendar-disclosure>summary { list-style:none; }
+  .calendar-disclosure>summary::-webkit-details-marker { display:none; }
+  #cal-sum,#cal-hint { display:none; }
+  #cal-sum.error { display:block; color:#8d2b39; }
+  .cal-head { margin:3px 0 12px; }
+  .cal-grid { gap:5px; }
+  /* Выбранный период: тёмная полоса со скруглёнными углами на каждую неделю, как плашка во вкладках; дни внутри
+     квадратные, текст белый. При смене периода полоса переезжает. Цвет заработок не показывает. */
+  .cal-wrap { position:relative; }
+  .cal-wrap .cal-grid { position:relative; z-index:1; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+  .cal-period { position:absolute; inset:0; pointer-events:none; }
+  .cal-period .band { position:absolute; border-radius:11px; background:var(--sel-fill,rgba(255,255,255,.62));
+    -webkit-backdrop-filter:var(--sel-blur); backdrop-filter:var(--sel-blur); box-shadow:inset 0 1px 1px rgba(255,255,255,.7);
+    transition:left .3s cubic-bezier(.3,.9,.3,1),width .3s cubic-bezier(.3,.9,.3,1),top .3s cubic-bezier(.3,.9,.3,1),opacity .2s; }
+  .cal-period .band.fresh { opacity:0; transition:none; }
+  .cal-cell { transition:color .25s; }
+  .cal-cell.in:not([data-wish]) { background-color:transparent; box-shadow:none; color:var(--sel-ink,#111); }
+  .cal-cell.in:not([data-wish]) * { color:inherit; }
+  /* Рамки смен, сегодняшнего дня и пожеланий внутри периода: обычные на светлом выделении, светлее на тёмном. */
+  .cal-cell.in.shift:not([data-wish]) { box-shadow:inset 0 0 0 1.5px var(--sel-shift,var(--card)); }
+  .cal-cell.in.today:not([data-wish]) { box-shadow:inset 0 0 0 2px var(--sel-ink,#111); }
+  .cal-cell.in[data-wish] { background-color:transparent; color:var(--sel-ink,#111); }
+  .cal-cell.in[data-wish="required"] { box-shadow:inset 0 0 0 1.5px var(--sel-req,#a93232); }
+  .cal-cell.in[data-wish="preferred"] { box-shadow:inset 0 0 0 1.5px var(--sel-pref,#b18400); }
+  @media (prefers-reduced-motion: reduce) { .cal-period .band, .cal-cell { transition:none; } }
+  .app-footer { border:0; }
+</style>
+<link rel="stylesheet" href="glass.css">
+</head>
+<body>
+  <div id="bg" aria-hidden="true"><canvas id="gradient-canvas"></canvas></div>
+  <div class="tabs-scroll"><nav class="app-tabs nimbus-nav" role="tablist" aria-label="Разделы">
+    <button id="tab-earnings" class="nimbus-item" role="tab" aria-selected="true" aria-controls="earnings-panel">Деньги</button>
+    <button id="tab-schedule" class="nimbus-item" role="tab" aria-selected="false" aria-controls="schedule-panel" hidden>График</button>
+  </nav></div>
+  <section id="schedule-panel" role="tabpanel" aria-labelledby="tab-schedule" hidden></section>
+  <section id="earnings-panel" role="tabpanel" aria-labelledby="tab-earnings">
+  <section id="tips-dashboard" aria-label="Деньги: часы, чаевые и расходы" aria-busy="true"></section>
+  <div hidden>
+  <p class="head" id="head">Загружаю…</p>
+
+  <p class="hero-label">За неделю</p>
+  <p class="hero" id="hero-num">—</p>
+
+  <div class="r"><span class="lbl">Сегодня</span><span class="val" id="today">—</span></div>
+  <div class="r"><span class="lbl">Месяц</span><span class="tag" id="month-tag"></span><span class="val" id="month">—</span></div>
+  <div class="r"><span class="lbl">Заработал всего</span><span class="val" id="total">—</span></div>
+
+  <div class="plan" id="plan" style="display:none">
+    <div class="r" style="margin:0">
+      <span class="lbl" style="font-size:13px; color:var(--ink-soft)" id="plan-lbl">План смены</span>
+      <span class="val" style="font-size:13px" id="plan-val"></span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" id="plan-fill"></div></div>
+  </div>
+
+  </div>
+  <p id="err"></p>
+
+  <details class="tips-disclosure calendar-disclosure" open><summary>Календарь смен</summary>
+  <div class="cal-head">
+    <button class="cal-nav" id="cal-prev" type="button" aria-label="Предыдущий месяц">‹</button>
+    <span class="cal-title" id="cal-title">Календарь</span>
+    <button class="cal-nav" id="cal-next" type="button" aria-label="Следующий месяц">›</button>
+  </div>
+  <div class="cal-wd" id="cal-wd"></div>
+  <div class="cal-wrap" id="cal-wrap"><div class="cal-grid" id="cal-grid"></div></div>
+  <p class="cal-sum" id="cal-sum" role="status"></p>
+  <p class="days-off-beta" id="days-off-beta" hidden><a href="days-off">Выходные: новый календарь (проба) ›</a></p>
+  <p class="cal-hint" id="cal-hint">Нажми на день, чтобы добавить или исправить смену и чаевые.</p>
+  <div class="iphone-calendar" id="iphone-calendar" hidden>
+    <button class="iphone-calendar-toggle" id="iphone-calendar-toggle" type="button">Подключить календарь ›</button>
+    <p id="iphone-calendar-status" role="status" hidden></p>
+    <details class="iphone-calendar-help" id="iphone-calendar-help" hidden><summary>Как добавить подписку?</summary>
+      <p>На iPhone подтверди подписку в «Календаре». На Android подтверди её в Google Календаре. Если Google попросит войти, выбери свой аккаунт. Бот не получает доступ к аккаунту; Google получит ссылку на график и время смен. Изменения могут появляться с задержкой.</p>
+      <p>Если подключение не открылось, скопируй ссылку и добавь её в Google Календарь на компьютере: «Другие календари» → «Добавить» → «По URL». Другой способ для Android — в инструкции ниже.</p>
+      <input id="iphone-calendar-link" aria-label="Личная ссылка на календарь" readonly>
+      <div class="iphone-calendar-actions">
+        <button id="iphone-calendar-copy" type="button">Скопировать ссылку ›</button>
+        <button id="iphone-calendar-guide" type="button">Открыть инструкцию ›</button>
+      </div>
+      <details class="iphone-calendar-manage"><summary>Управление подпиской</summary>
+      <div class="iphone-calendar-actions">
+        <button id="iphone-calendar-rotate" type="button">Заменить ссылку ›</button>
+        <button id="iphone-calendar-revoke" type="button">Отключить ссылку ›</button>
+      </div>
+      </details>
+      <p class="iphone-calendar-note">Ссылка личная: тот, у кого она есть, увидит твой график.</p>
+    </details>
+  </div>
+  </details>
+  <button class="btn btn-ghost" id="private-open" hidden>🔒 Суперконфиденциальность</button>
+  <p id="private-sync-status" role="status"></p>
+
+  </section>
+
+  <div id="private-modal" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:30;display:none;align-items:end">
+    <div class="sheet">
+      <p class="sheet-title">Суперконфиденциальность</p>
+      <p id="private-description">Личный журнал будет на этом устройстве. Зашифрованные копии записей останутся на сервере на 14 дней для повторного переноса при сбое. Без ключа этого телефона суммы не прочитать. При потере телефона данные не восстановятся.</p>
+      <p id="private-status" role="status"></p>
+      <button class="btn" id="private-confirm">Перенести записи и включить</button>
+      <button class="btn btn-ghost" id="private-exit" hidden>Вернуться к обычному режиму</button>
+      <button class="btn btn-ghost" id="private-restore" hidden>Восстановить записи за 14 дней</button>
+      <button class="btn btn-ghost" id="private-clear" hidden>Удалить текущий журнал и временные копии</button>
+      <button class="btn btn-ghost" id="private-cancel">Закрыть</button>
+    </div>
+  </div>
+
+  <footer class="app-footer"><button id="open-history">История и правки ›</button><button id="ux-help">Помощь и обратная связь ›</button><button id="ux-access-retry" hidden>Не все разделы загрузились · повторить</button></footer>
+
+  <div id="help-panel" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="sheet">
+      <div class="help-head"><p class="sheet-title" id="help-title">Чем помочь?</p><button id="help-close" type="button">Закрыть</button></div>
+      <div id="help-home">
+        <p class="help-copy">Есть пожелание или что-то не получается? Напиши — Леша прочитает. Или посмотри ответы на частые вопросы.</p>
+        <button class="help-action primary" id="help-wish" type="button">Обратная связь ↗</button>
+        <button class="help-action" id="help-faq-open" type="button">Частые вопросы ›</button>
+        <button class="help-action" id="help-contact" type="button">Написать Лёше ↗</button>
+      </div>
+      <div id="help-faq" hidden>
+        <p class="help-copy">Короткие ответы на задачи, которые уже есть в боте.</p>
+        <details class="help-question"><summary>Как записать чаевые или расход?</summary><p>Пришли боту сумму: <b>чай 1500</b>. Расход укажи с названием: <b>такси 430</b>. Бот покажет, сколько осталось чистыми.</p></details>
+        <details class="help-question"><summary>Как исправить запись?</summary><p>Открой «История и правки» внизу миниаппа. Если запись относится к конкретной смене, выбери её день в календаре.</p></details>
+        <details class="help-question"><summary>Где мой график?</summary><p>Менеджер публикует график в разделе «График». Твои смены также появляются в календаре под чаевыми. Пожелания до публикации отмечены красной или жёлтой обводкой. После публикации календарь показывает рабочие смены.</p></details>
+        <details class="help-question"><summary>Как записать выходные?</summary><p>Открой календарь под чаевыми, выбери день и нажми «Обязательный» или «Желательный». Изменить или убрать просьбу можно там же. Можно написать и в чат: «не могу работать 18-го, желательно выходной 20-го». Режим 2/2 или 3/3 тоже можно прислать сообщением — это пожелание, которое может выполняться частично.</p></details>
+        <details class="help-question"><summary>Как отправить обратную связь?</summary><p>Чтобы сообщить об ошибке или предложить улучшение бота, нажми «Обратная связь». Обращение получит Лёша. Даты выходных меняются в календаре под чаевыми.</p></details>
+        <button class="help-action" id="help-faq-back" type="button">← Назад</button>
+        <button class="help-action primary" id="help-faq-contact" type="button">Не нашёл ответ? Написать Лёше ↗</button>
+      </div>
+      <p class="help-status" id="help-status" role="status"></p>
+      <a class="help-manual" id="help-manual" hidden target="_blank" rel="noopener">Открыть чат в Telegram ↗</a>
+    </div>
+  </div>
+
+  <!-- Панель трат за смену -->
+  <div id="spend">
+    <div class="sheet">
+      <p class="sheet-title">Расход</p>
+      <p class="sheet-sub" id="spend-sub"></p>
+      <div class="chips" id="spend-chips"></div>
+      <div class="spend-inputs" id="spend-inputs">
+        <input type="text" id="spend-name" aria-label="Название расхода" placeholder="Название" maxlength="60" style="display:none">
+        <input type="number" inputmode="decimal" step="0.01" min="0.01" max="10000000" id="spend-amount" aria-label="Сумма расхода" placeholder="Сумма ₽">
+        <button id="spend-submit">Внести</button>
+      </div>
+      <p class="spend-note" id="spend-note"></p>
+      <button class="btn btn-ghost" id="spend-close" style="margin-top:0">Готово</button>
+    </div>
+  </div>
+
+  <!-- Разбор дня из календаря -->
+  <div id="day" role="dialog" aria-modal="true" aria-labelledby="day-title">
+    <div class="sheet">
+      <div class="day-header"><p class="sheet-title" id="day-title">—</p><button id="day-close" type="button">Готово</button></div>
+      <div id="day-body"></div>
+      <div id="day-wishes" hidden>
+        <p class="day-note" id="day-wish-text"></p>
+        <div class="day-shift-actions" id="day-wish-actions" hidden>
+          <button type="button" class="btn" data-wish-kind="required">Обязательный</button>
+          <button type="button" class="btn" data-wish-kind="preferred">Желательный</button>
+          <button type="button" class="btn btn-ghost" data-wish-kind="none">Убрать просьбу</button>
+        </div>
+        <p class="sheet-sub" id="day-wish-status" role="status"></p>
+      </div>
+      <p class="sheet-sub" id="day-status" role="status"></p>
+      <details class="day-edit" id="day-tips-details">
+        <summary id="day-tips-summary">Добавить чаевые</summary>
+        <div class="day-tip-fields" id="day-tip-inputs"><label>Сумма чаевых<input id="day-tip-amount" type="number" inputmode="decimal" min="0.01" max="10000000" step="0.01" placeholder="Сумма ₽"></label><div class="day-account" role="group" aria-label="Куда поступили"><span class="day-account-title">Куда поступили</span><label><input type="radio" name="day-tip-account" value="card" checked><span>На карту</span></label><label><input type="radio" name="day-tip-account" value="cash"><span>Наличными</span></label></div></div>
+        <button class="btn day-primary" id="day-tip-add">Записать чаевые</button>
+        <div id="day-tip-list"></div>
+      </details>
+      <details class="day-edit" id="day-shift-details">
+        <summary id="day-shift-summary">Добавить смену в график</summary>
+        <div class="day-shift-fields"><label>Начало<input id="day-start" type="time"></label><label>Конец<input id="day-end" type="time"></label></div>
+        <div class="day-shift-actions"><button class="btn" id="day-shift-save">Добавить смену</button><button class="btn btn-ghost" id="day-shift-delete" hidden>Убрать смену</button></div>
+      </details>
+    </div>
+  </div>
+
+  <!-- История и правки -->
+  <div id="history">
+    <div class="hist-inner">
+      <div class="hist-top">
+        <span class="hist-title">История</span>
+        <button class="hist-x" id="hist-close">Готово</button>
+      </div>
+      <p id="hist-status" role="status"></p>
+      <div id="hist-list"></div>
+    </div>
+  </div>
+
+<script src="private-finance.js"></script>
+<script>
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if (tg) { tg.ready(); tg.expand(); }
+// На телефоне мини-приложение всегда во весь экран (Telegram 8.0+): шапка Telegram скрыта,
+// отступы сверху и снизу берутся из безопасных зон, которые сообщает Telegram.
+if (tg && ['ios', 'android'].includes(tg.platform) && tg.isVersionAtLeast && tg.isVersionAtLeast('8.0')) {
+  window.tgAlwaysFull = true;
+  const mark = () => document.documentElement.classList.toggle('tg-full', !!tg.isFullscreen);
+  tg.onEvent('fullscreenChanged', mark);
+  try { tg.requestFullscreen(); } catch (_) {}
+  mark();
+}
+
+let lastStats = null;
+
+const MONTHS_UP = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+const MONTHS_GEN = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+const WD = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+// The dates are available before the first API response; shift and tip data is not.
+function showCalendarShell() {
+  const day=new Date(Date.now()-3*60*60*1000); // Moscow workday begins at 06:00.
+  const year=day.getUTCFullYear(),month=day.getUTCMonth()+1;
+  const firstDow=(new Date(Date.UTC(year,month-1,1)).getUTCDay()+6)%7;
+  const days=new Date(Date.UTC(year,month,0)).getUTCDate();
+  document.getElementById('cal-title').textContent=MONTHS_UP[month-1]+' '+year;
+  document.getElementById('cal-wd').innerHTML=WD.map(x=>'<span>'+x+'</span>').join('');
+  const grid=document.getElementById('cal-grid');
+  for(let n=0;n<firstDow;n++){
+    const empty=document.createElement('span');empty.className='cal-cell empty';grid.appendChild(empty);
+  }
+  for(let n=1;n<=days;n++){
+    const cell=document.createElement('button');cell.className='cal-cell';cell.type='button';
+    cell.textContent=n;cell.disabled=true;grid.appendChild(cell);
+  }
+}
+showCalendarShell();
+
+function rub(v) { return Math.round(v).toLocaleString("ru-RU"); }
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+  });
+}
+
+function setHero(text) {
+  const el = document.getElementById("hero-num");
+  if (el.textContent === text) return;   // не мигаем при неизменном значении
+  el.textContent = text;
+  el.classList.remove("blur-in");
+  void el.offsetWidth;                    // форсируем reflow, чтобы анимация перезапустилась
+  el.classList.add("blur-in");
+}
+// Возвращает HTML: число моноширинным, слово — обычным шрифтом.
+// n всегда приходит числом из нашего же API, подставлять нечего.
+function shiftsWord(n) {
+  const m10 = n % 10, m100 = n % 100;
+  let word = "смен";
+  if (m10 === 1 && m100 !== 11) word = "смена";
+  else if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) word = "смены";
+  return '<span class="num">' + Number(n) + "</span> " + word;
+}
+
+function render(s) {
+  lastStats = s;
+  const now = new Date((s.operational_today || new Date().toISOString().slice(0,10)) + "T12:00:00");
+  document.getElementById("head").innerHTML =
+    MONTHS_UP[now.getMonth()] + " · " + shiftsWord(s.shifts_count);
+  setHero(rub(s.week_net) + " ₽");
+  document.getElementById("today").textContent = rub(s.today_net);
+  document.getElementById("month").textContent = rub(s.tip_month ? s.tip_month.net : s.month_net);
+  document.getElementById("total").textContent = rub(s.total_net);
+  document.getElementById("month-tag").textContent =
+    s.vs_prev_month_pct != null ? ((s.vs_prev_month_pct >= 0 ? "▲ " : "▼ ") + Math.abs(s.vs_prev_month_pct) + "%") : "";
+
+  const plan = document.getElementById("plan");
+  if (s.shift_goal) {
+    plan.style.display = "block";
+    document.getElementById("plan-lbl").innerHTML =
+      'План смены — <span class="num">' + rub(s.shift_goal) + "</span>";
+    document.getElementById("plan-val").textContent = s.goal_pct + "%";
+    document.getElementById("plan-fill").style.width = s.goal_pct + "%";
+  } else {
+    plan.style.display = "none";
+  }
+
+  // Пока человек листает прошлые месяцы, автообновление не должно
+  // выдёргивать его обратно в текущий.
+  const onCurrentMonth = calYear === null ||
+    (calYear === now.getFullYear() && calMonth === now.getMonth() + 1);
+  if (onCurrentMonth) paintCalendar(calViewFromStats(s));
+}
+
+
+// ── календарь: любой месяц, листается стрелками ──
+let calYear = null, calMonth = null, calendarView = null;
+let monthRequest = 0;
+
+let daysOffBeta = false;   // новый календарь выходных (как виджет), пока на проверке: days-off
+
+function calViewFromStats(s) {
+  daysOffBeta = !!s.days_off_beta;
+  // Текущий месяц уже пришёл в /api/stats — лишний запрос не нужен.
+  const now = new Date((s.operational_today || new Date().toISOString().slice(0,10)) + 'T12:00:00');
+  return {
+    year: now.getFullYear(), month: now.getMonth() + 1,
+    days: s.month_days, days_in_month: s.days_in_month,
+    scheduled_shifts: s.scheduled_shifts, today_day: s.today_day,
+    planned_times: s.planned_times, worked_times: s.worked_times,
+    tip_entries: s.tip_entries, calendar_wishes: s.calendar_wishes,
+    shifts_count: s.shifts_count, tips_total: s.month_tips,
+    has_prev: s.has_prev, has_next: s.has_next,
+  };
+}
+
+// ── выбранный период в календаре ──
+// Вкладка «Деньги» (tips.js) сообщает период событием `tips-period`; календарь рисует его волнистой лентой
+// и возвращает свой выбор событием `tips-set-range`. Касание дня по-прежнему открывает день;
+// когда выбран режим «Свои дни», касания выбирают начало и конец. Долгое нажатие с проведением выбирает период.
+let tipsPeriod = null, calPick = null, calPreview = null, calSuppressClick = false;
+
+function workedHours(row) {
+  if (!row?.actual_start || !row?.actual_end) return 0;
+  const hours = (new Date(row.actual_end) - new Date(row.actual_start)) / 36e5;
+  return Number.isFinite(hours) && hours > 0 ? hours : 0;
+}
+function hoursLabel(hours) {
+  return hours.toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' ч';
+}
+
+function drawPeriod() {
+  const grid = document.getElementById('cal-grid'), wrap = document.getElementById('cal-wrap');
+  if (!grid || !wrap) return;
+  let box = document.getElementById('cal-period');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'cal-period'; box.className = 'cal-period'; box.setAttribute('aria-hidden', 'true');
+    wrap.insertBefore(box, grid);
+  }
+  const range = calPreview || (tipsPeriod && tipsPeriod.mode !== 'all' ? tipsPeriod : null);
+  const cells = Array.from(grid.querySelectorAll('.cal-cell[data-iso]'));
+  const inside = range ? cells.filter(function (c) { return c.dataset.iso >= range.start && c.dataset.iso <= range.end; }) : [];
+  cells.forEach(function (c) { c.classList.toggle('in', inside.includes(c)); });
+  // По одной полосе на каждую неделю-строку периода; прежние полосы переиспользуются, поэтому они переезжают.
+  const all = Array.from(grid.children), wr = wrap.getBoundingClientRect(), rows = new Map();
+  inside.forEach(function (c) { const r = Math.floor(all.indexOf(c) / 7); (rows.get(r) || rows.set(r, []).get(r)).push(c); });
+  const bands = Array.from(box.children);
+  let i = 0;
+  rows.forEach(function (list) {
+    const r1 = list[0].getBoundingClientRect(), r2 = list[list.length - 1].getBoundingClientRect();
+    let band = bands[i];
+    const fresh = !band;
+    if (fresh) { band = document.createElement('span'); band.className = 'band fresh'; box.appendChild(band); }
+    band.style.left = (r1.left - wr.left) + 'px'; band.style.top = (r1.top - wr.top) + 'px';
+    band.style.width = (r2.right - r1.left) + 'px'; band.style.height = r1.height + 'px';
+    if (fresh) { band.offsetWidth; band.classList.remove('fresh'); }
+    i++;
+  });
+  bands.slice(i).forEach(function (b) { b.remove(); });
+}
+
+window.addEventListener('tips-period', function (event) {
+  tipsPeriod = event.detail; calPick = null; calPreview = null; drawPeriod();
+});
+window.addEventListener('resize', function () { drawPeriod(); });
+// Вкладка «Деньги» скрыта, пока открыта другая: когда календарь снова получает размер, период рисуется заново.
+if ('ResizeObserver' in window) new ResizeObserver(function () { drawPeriod(); }).observe(document.getElementById('cal-wrap'));
+
+// Касание дня в режиме «Свои дни»: первое — начало, второе — конец периода.
+function calClick(cell) {
+  if (calSuppressClick) return true;
+  if (!tipsPeriod?.picking) return false;
+  const iso = cell.dataset.iso;
+  if (!calPick) { calPick = iso; calPreview = { start: iso, end: iso }; drawPeriod(); return true; }
+  const range = { start: calPick < iso ? calPick : iso, end: calPick < iso ? iso : calPick };
+  calPick = null; calPreview = null;
+  window.dispatchEvent(new CustomEvent('tips-set-range', { detail: range }));
+  return true;
+}
+
+// Долгое нажатие и проведение: палец на дне четверть секунды, затем веди — период тянется за пальцем.
+(function () {
+  const grid = document.getElementById('cal-grid');
+  let press = null, dragging = false, from = null;
+  const dayAt = function (x, y) { const c = document.elementFromPoint(x, y)?.closest('.cal-cell[data-iso]'); return c ? c.dataset.iso : null; };
+  function begin(iso) {
+    dragging = true; from = iso; calPick = null; calPreview = { start: iso, end: iso }; drawPeriod();
+    if (navigator.vibrate) navigator.vibrate(8);
+  }
+  function stretch(iso) {
+    if (iso === null) return;
+    calPreview = { start: from < iso ? from : iso, end: from < iso ? iso : from }; drawPeriod();
+  }
+  grid.addEventListener('pointerdown', function (e) {
+    const iso = dayAt(e.clientX, e.clientY); if (iso === null) return;
+    press = { iso: iso, x: e.clientX, y: e.clientY, touch: e.pointerType !== 'mouse' };
+    if (press.touch) press.timer = setTimeout(function () { if (press) begin(press.iso); }, 250);
+  });
+  grid.addEventListener('pointermove', function (e) {
+    if (!press) return;
+    if (!dragging) {
+      if (Math.hypot(e.clientX - press.x, e.clientY - press.y) < 8) return;
+      if (press.touch) { clearTimeout(press.timer); press = null; return; }   // палец сдвинулся раньше — это прокрутка страницы
+      begin(press.iso); grid.setPointerCapture(e.pointerId);
+    }
+    stretch(dayAt(e.clientX, e.clientY));
+  });
+  grid.addEventListener('touchmove', function (e) { if (dragging) e.preventDefault(); }, { passive: false });
+  function finish() {
+    if (!press) return;
+    clearTimeout(press.timer);
+    const was = dragging, range = calPreview;
+    press = null; dragging = false;
+    if (!was) return;
+    calSuppressClick = true; setTimeout(function () { calSuppressClick = false; }, 60);
+    calPreview = null;
+    window.dispatchEvent(new CustomEvent('tips-set-range', { detail: range }));
+  }
+  grid.addEventListener('pointerup', finish);
+  grid.addEventListener('pointercancel', finish);
+  grid.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+})();
+
+function paintCalendar(view) {
+  document.getElementById('cal-sum').classList.remove('error');
+  calYear = view.year;
+  calMonth = view.month;
+  calendarView = view;
+
+  document.getElementById("cal-title").textContent =
+    MONTHS_UP[view.month - 1] + " " + view.year;
+  document.getElementById("cal-prev").disabled = view.year === 2000 && view.month === 1;
+  document.getElementById("cal-next").disabled = view.year === 2100 && view.month === 12;
+
+  const firstDow = (new Date(Date.UTC(view.year, view.month - 1, 1)).getUTCDay() + 6) % 7; // Пн=0
+  const shiftDays = new Set((view.scheduled_shifts || []).map(function (d) {
+    return parseInt(d.slice(8, 10), 10);
+  }));
+  const plannedByDay = new Map((view.planned_times || []).map(function (s) { return [Number(s.shift_date.slice(8)),s]; }));
+  const workedByDay = new Map((view.worked_times || []).map(function (s) { return [Number(s.shift_date.slice(8)), s]; }));
+
+  document.getElementById("cal-wd").innerHTML =
+    WD.map(function (x) { return "<span>" + x + "</span>"; }).join("");
+  const grid = document.getElementById("cal-grid");
+  grid.innerHTML = "";
+  for (let i = 0; i < firstDow; i++) {
+    const b = document.createElement("div");
+    b.className = "cal-cell empty";
+    grid.appendChild(b);
+  }
+  view.days.forEach(function (d) {
+    const cell = document.createElement("button");
+    cell.type = "button";
+    cell.className = "cal-cell";
+    cell.textContent = d.day;
+    const plannedTime=plannedByDay.get(d.day), workedTime=workedByDay.get(d.day), hours=workedHours(workedTime);
+    if (hours) {
+      // Прошедшая смена с записанным временем: внутри отработанные часы, а не период работы.
+      const label=document.createElement('span');label.className='cal-time';
+      label.textContent=hoursLabel(hours);
+      cell.appendChild(label);
+    } else if (plannedTime?.starts_at && plannedTime?.ends_at) {
+      const shortTime=function(v) {return v.slice(3,5)==='00'?String(Number(v.slice(0,2))):v.slice(0,5);};
+      const label=document.createElement('span');label.className='cal-time';
+      label.textContent=shortTime(plannedTime.starts_at)+'–'+
+        shortTime(plannedTime.ends_at);
+      cell.appendChild(label);
+    }
+    // Чаевые цветом не показываем: заработок виден в цифрах вверху, а календарь отмечает смены и выбранный период.
+    if (d.tips > 0) cell.title = d.day + ": " + rub(d.tips) + " ₽";
+    cell.dataset.iso = calendarDate(view,d.day);
+    const wish = view.calendar_wishes?.days?.[calendarDate(view,d.day)];
+    if (wish?.kind && !wish.published) cell.dataset.wish=wish.kind;
+    else if (wish?.published && wish.working!=null ? wish.working : shiftDays.has(d.day)) cell.classList.add("shift");
+    if (d.day === view.today_day) {
+      cell.classList.add("today");   // null в чужих месяцах
+      cell.setAttribute('aria-current','date');
+    }
+
+    const wishLabel = cell.dataset.wish==='required' ? '. Планируемый обязательный выходной'
+      : cell.dataset.wish==='preferred' ? '. Планируемый желательный выходной' : '';
+    cell.setAttribute("aria-label", d.day + " " + MONTHS_GEN[view.month - 1] + wishLabel + ". Открыть день");
+    cell.onclick = function () { if (calClick(cell)) return; openDay(view, d); };
+    grid.appendChild(cell);
+  });
+
+  drawPeriod();
+
+  const sum = document.getElementById("cal-sum");
+
+  const planned = (view.scheduled_shifts || []).length;
+  if (window.privateMoney.state.lost) {
+    sum.innerHTML=(planned ? "Запланировано " + shiftsWord(planned) + ". " : "График пуст. ") +
+      "Личный журнал недоступен на этом устройстве.";
+  } else if (view.shifts_count) {
+    sum.innerHTML = shiftsWord(view.shifts_count) +
+      ' · <span class="num">' + rub(view.tips_total) + "</span> ₽ чая";
+  } else if (planned) {
+    // Месяц вперёд: чая ещё нет, но смены уже поставлены
+    sum.innerHTML = "Запланировано " + shiftsWord(planned);
+  } else {
+    sum.textContent = "Чаевые за месяц не записаны";
+  }
+  // Отдельной строкой: итог месяца (#cal-sum) в нынешнем оформлении скрыт.
+  document.getElementById('days-off-beta').hidden = !daysOffBeta;
+  if (view.calendar_wishes?.error) {
+    sum.append(document.createElement('br'), view.calendar_wishes.error);
+    sum.classList.add('error');
+  }
+  if (selectedDayISO && selectedDayISO.slice(0,7) === view.year + "-" + String(view.month).padStart(2,"0")) {
+    const day = Number(selectedDayISO.slice(8));
+    if (view.days[day-1]) openDay(view, view.days[day-1]);
+  }
+}
+
+// ── разбор одного дня ──
+const WD_FULL = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"];
+
+function dayRow(k, v, total) {
+  return '<div class="day-row' + (total ? " total" : "") + '">' +
+    '<span class="k">' + k + '</span><span class="v">' + v + "</span></div>";
+}
+
+function workClock(iso) {
+  const instant = new Date(iso);
+  if (!Number.isFinite(instant.getTime())) return null;
+  return new Intl.DateTimeFormat('ru-RU', {
+    timeZone: 'Europe/Moscow', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  }).format(instant);
+}
+
+function openDay(view, d) {
+  const nextDay = view.year + "-" + String(view.month).padStart(2,"0") + "-" + String(d.day).padStart(2,"0");
+  // Автообновление раз в минуту снова открывает тот же день: введённое время и сообщение не стираем.
+  const dayChanged = lastOpenedDayISO !== nextDay;
+  if (dayChanged) dayShiftEdited = false;
+  if (dayChanged) {
+    if (!dayTipPending) dayTipOperation = null;
+    document.getElementById('day-tips-details').open=false;
+    document.getElementById('day-shift-details').open=false;
+  }
+  lastOpenedDayISO = nextDay;
+  selectedDayISO = nextDay;
+  const dt = new Date(view.year, view.month - 1, d.day);
+  const wd = WD_FULL[(dt.getDay() + 6) % 7];
+  document.getElementById("day-title").textContent =
+    wd.charAt(0).toUpperCase() + wd.slice(1) + ", " + d.day + " " + MONTHS_GEN[view.month - 1];
+
+  const spent = d.spent || 0;
+  const rows = [];
+  const planned = (view.planned_times || []).find(function (s) { return s.shift_date === selectedDayISO; });
+  const worked = (view.worked_times || []).find(function (s) { return s.shift_date === selectedDayISO; });
+  if (planned) rows.push(dayRow("По графику", planned.starts_at && planned.ends_at ? planned.starts_at.slice(0,5) + "–" + planned.ends_at.slice(0,5) : "время не указано"));
+  if (worked) {
+    const start = workClock(worked.actual_start);
+    const end = workClock(worked.actual_end);
+    rows.push(dayRow("Фактически", start && end ? start + "–" + end : "не удалось показать время"));
+  }
+  if (d.tips > 0) {
+    rows.push(dayRow("Чаевые", rub(d.tips) + " ₽"));
+  }
+  // Итог показываем, только если есть что вычитать: без трат он дословно
+  // повторял бы строку «Чай».
+  if (spent > 0) {
+    rows.push(dayRow("Траты смены", "−" + rub(spent) + " ₽"));
+    rows.push(dayRow("Чистыми за смену", rub(d.tips - spent) + " ₽", true));
+  }
+
+  document.getElementById("day-body").innerHTML = rows.length
+    ? rows.join("")
+    : '<p class="day-note">Записей пока нет.</p>';
+  if (!dayShiftEdited) {
+    document.getElementById("day-start").value = planned && planned.starts_at ? planned.starts_at.slice(0,5) : "";
+    document.getElementById("day-end").value = planned && planned.ends_at ? planned.ends_at.slice(0,5) : "";
+  }
+  document.getElementById("day-shift-save").textContent = planned ? "Изменить время смены" : "Добавить смену";
+  document.getElementById("day-shift-summary").textContent = planned ? "Изменить смену в графике" : "Добавить смену в график";
+  document.getElementById("day-shift-delete").hidden = !planned;
+  document.getElementById('day-tips-details').hidden=privateMoney.state.lost;
+  document.getElementById('day-tip-inputs').hidden=privateMoney.state.lost;
+  document.getElementById('day-tip-add').hidden=privateMoney.state.lost;
+  if (dayChanged) document.getElementById("day-status").textContent = calendarNotice?.date===selectedDayISO ? calendarNotice.text : "";
+  const tips = privateMoney.state.lost ? [] : (view.tip_entries || []).filter(function (e) { return e.date === selectedDayISO; });
+  document.getElementById('day-tips-summary').textContent=tips.length?'Чаевые: добавить или убрать':'Добавить чаевые';
+  const list = document.getElementById("day-tip-list");
+  list.replaceChildren();
+  tips.forEach(function (e) {
+    const row = document.createElement("div");
+    row.className = "day-tip-record";
+    const label = document.createElement("span");
+    label.textContent = e.account === "cash" ? "Наличными" : "На карту";
+    const amount = document.createElement("strong");
+    amount.textContent = rub(e.amount) + " ₽";
+    const remove = document.createElement("button");
+    remove.type = "button"; remove.textContent = "Удалить";
+    remove.setAttribute('aria-label','Удалить чаевые '+label.textContent+' '+amount.textContent);
+    // Повторное нажатие до ответа не отправляет второе удаление; список дня перерисуется после ответа.
+    remove.onclick = function () { if (remove.disabled) return; remove.disabled = true; calendarEdit({action:"tip_delete",entry_id:e.id}); };
+    row.append(label,amount,remove);list.appendChild(row);
+  });
+  renderDayWishes(view);
+  document.getElementById("day").classList.add("on");
+}
+
+function calendarDate(view,day) {
+  return `${view.year}-${String(view.month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+
+let dayWishPending=null, dayWishNotice=null, dayWishBusy=false;
+function wishDayText(wish) {
+  if(wish.published) {
+    if(wish.working===false) return 'По опубликованному графику у тебя выходной.';
+    if(wish.kind && wish.changed) return 'Просьба записана. Менеджер увидит изменение. Пока действует опубликованный график.';
+    if(wish.working && wish.kind==='required') return 'На этот день опубликована смена, хотя ты просил обязательный выходной. Обсуди это с менеджером.';
+    if(wish.working && wish.kind==='preferred') return 'На этот день опубликована смена. Желательный выходной не получился.';
+    return '';
+  }
+  if(wish.kind==='required') return 'Планируемый обязательный выходной. Просьба записана, график ещё не опубликован.';
+  if(wish.kind==='preferred') return 'Планируемый желательный выходной. Просьба записана, график ещё не опубликован.';
+  return '';
+}
+
+function renderDayWishes(view) {
+  const wishes=view.calendar_wishes, wish=wishes?.days?.[selectedDayISO];
+  const panel=document.getElementById('day-wishes');
+  const actions=document.getElementById('day-wish-actions');
+  const buttons=actions.querySelectorAll('[data-wish-kind]');
+  panel.hidden=!(wish || wishes?.error);
+  actions.hidden=!wish?.editable;
+  document.getElementById('day-wish-text').textContent=wishes?.error || (wish ? wishDayText(wish) : '');
+  document.getElementById('day-wish-status').textContent=dayWishNotice?.date===selectedDayISO ? dayWishNotice.text : '';
+  for(const button of buttons) {
+    const kind=button.dataset.wishKind;
+    button.disabled=dayWishBusy || kind===wish?.kind || (kind==='none'&&!wish?.kind);
+    button.setAttribute('aria-pressed',String(kind===wish?.kind));
+    button.onclick=()=>saveCalendarWish(wish,kind);
+  }
+}
+
+async function saveCalendarWish(wish,kind) {
+  if(!wish?.editable || dayWishBusy || !selectedDayISO)return;
+  const date=selectedDayISO, year=calYear, month=calMonth;
+  const status=document.getElementById('day-wish-status');
+  const buttons=document.querySelectorAll('#day-wish-actions button');
+  const same=dayWishPending?.date===date && dayWishPending.kind===kind && dayWishPending.roster_id===wish.roster_id
+    && dayWishPending.revision===wish.revision;
+  const payload=same ? dayWishPending : {action:'wish_save',date,kind,roster_id:wish.roster_id,
+    revision:wish.revision,operation_id:crypto.randomUUID()};
+  dayWishPending=payload;
+  dayWishBusy=true;
+  buttons.forEach(button=>button.disabled=true);
+  status.textContent='';
+  let refresh=false;
+  try {
+    const response=await fetch('/api/calendar_edit',{method:'POST',headers:{'Content-Type':'application/json'},
+      cache:'no-store',signal:AbortSignal.timeout(20000),body:JSON.stringify({...payload,initData:tg?.initData||''})});
+    const result=await response.json();
+    if(response.ok && result.saved) {
+      dayWishPending=null;
+      refresh=true;
+      dayWishNotice={date,text:result.message};
+      const days=calendarView?.calendar_wishes?.days;
+      if(days?.[date]?.roster_id===wish.roster_id && days[date].revision<=result.revision) {
+        for(const entry of Object.values(days)) {
+          if(entry.roster_id===wish.roster_id)entry.revision=result.revision;
+        }
+        days[date].kind=kind==='none' ? null : kind;
+        days[date].changed=days[date].published && kind!=='none';
+        paintCalendar(calendarView);
+      }
+    } else {
+      if(response.status<500)dayWishPending=null;
+      refresh=response.status===409;
+      dayWishNotice={date,text:result.error||'Не получил подтверждение сохранения. Проверь пожелание перед повтором.'};
+    }
+  } catch {
+    dayWishNotice={date,text:'Не получил подтверждение сохранения. Проверь пожелание перед повтором.'};
+  } finally {
+    if(refresh && calYear===year && calMonth===month)await loadMonth(year,month);
+    dayWishBusy=false;
+    if(selectedDayISO && calendarView)renderDayWishes(calendarView);
+  }
+}
+
+let selectedDayISO = null;
+let lastOpenedDayISO = null;
+let dayShiftEdited = false;
+let dayTipOperation = null;
+let dayTipPending = null;
+let dayTipBusy = false;
+let calendarNotice = null;
+function calendarEdit(payload) {
+  if (!selectedDayISO) return;
+  if (payload.action==='tip_add' && dayTipBusy) return;
+  if (payload.action==='tip_add') dayTipBusy=true;
+  const editDay=selectedDayISO;
+  const status = document.getElementById("day-status");
+  if (window.privateMoney.active && payload.action.startsWith('tip_')) {
+    const task=payload.action==='tip_add'
+      ? (async function () {
+          const amount=Number(payload.amount);
+          if (!Number.isFinite(amount) || amount<=0 || amount>10000000 || Math.abs(Math.round(amount*100)-amount*100)>1e-8)
+            throw new Error('Проверь сумму чаевых.');
+          await privateMoney.add({id:'local:'+payload.operation_id,source_key:'calendar:'+payload.operation_id,kind:'income',account:payload.account,
+            signed_amount:amount,category:'Чаевые',note:'из календаря',work_date:editDay,
+            created_at:new Date().toISOString()},payload.mode==='server');
+          if (dayTipOperation===payload.operation_id) {
+            dayTipOperation=null;dayTipPending=null;
+            if (lastOpenedDayISO===editDay) document.getElementById('day-tip-amount').value='';
+          }
+        })()
+      : privateMoney.remove(payload.entry_id);
+    status.textContent='Сохраняю на устройстве…';
+    task.then(function () {calendarNotice={date:editDay,text:'Сохранено на устройстве.'};if(selectedDayISO===editDay)status.textContent=calendarNotice.text;loadMonth(calYear,calMonth);load();})
+      .catch(function (e) {if(selectedDayISO===editDay)status.textContent=e.message;})
+      .finally(function () {dayTipBusy=false;});
+    return;
+  }
+  status.textContent = "Сохраняю…";
+  fetch("/api/calendar_edit", {method:"POST",headers:{"Content-Type":"application/json"},cache:"no-store",signal:AbortSignal.timeout(20000),
+    body:JSON.stringify(Object.assign({initData:tg ? tg.initData : "",date:editDay},payload))})
+    .then(function (r) { return r.json().then(function (v) { if (!r.ok) throw Object.assign(new Error(v.error || "Не получилось сохранить"), {status: r.status}); return v; }); })
+    .then(function (result) {
+      calendarNotice={date:editDay,text:result.warning || "Сохранено."};
+      if(selectedDayISO===editDay)status.textContent = calendarNotice.text;
+      if (payload.action === "shift_save" || payload.action === "shift_delete") dayShiftEdited = false;
+      if (payload.action === "tip_add" && dayTipOperation===payload.operation_id) {
+        dayTipOperation=null;dayTipPending=null;
+        if (lastOpenedDayISO===editDay) document.getElementById("day-tip-amount").value = "";
+      }
+      loadMonth(calYear,calMonth);load();
+    })
+    .catch(function (e) {
+      // Отказ сервера (4xx): чаевые точно не записаны, следующая попытка может быть с другой суммой или днём.
+      // Обрыв связи или 5xx: исход неизвестен, повтор только с той же суммой — иначе возможен дубль.
+      if (payload.action === "tip_add" && e.status >= 400 && e.status < 500 && dayTipOperation === payload.operation_id) {
+        dayTipOperation = null; dayTipPending = null;
+      }
+      if(selectedDayISO===editDay)status.textContent = e.message || "Не получилось сохранить. Проверь данные и попробуй ещё раз.";
+    })
+    .finally(function () {dayTipBusy=false;});
+}
+document.getElementById("day-shift-save").onclick = function () {
+  const start=document.getElementById("day-start").value;
+  const end=document.getElementById("day-end").value;
+  calendarEdit({action:"shift_save",start:start || null,end:end || null});
+};
+document.getElementById("day-start").addEventListener("input", function () { dayShiftEdited = true; });
+document.getElementById("day-end").addEventListener("input", function () { dayShiftEdited = true; });
+document.getElementById("day-start").onchange = function () {
+  const end=document.getElementById("day-end");
+  if (!this.value || end.value) return;
+  const parts=this.value.split(":").map(Number);
+  const minutes=Math.min(parts[0]*60+parts[1]+12*60,23*60);
+  if (minutes>parts[0]*60+parts[1]) end.value=String(Math.floor(minutes/60)).padStart(2,"0")+":"+String(minutes%60).padStart(2,"0");
+};
+document.getElementById("day-shift-delete").onclick = function () {
+  if (confirm("Убрать смену из графика?")) calendarEdit({action:"shift_delete"});
+};
+document.getElementById("day-tip-add").onclick = function () {
+  const amount=Number(document.getElementById("day-tip-amount").value.replace(',','.'));
+  const account=document.querySelector('input[name="day-tip-account"]:checked').value;
+  if (!Number.isFinite(amount)||amount<=0||amount>10000000||Math.abs(Math.round(amount*100)-amount*100)>1e-8) {
+    document.getElementById('day-status').textContent='Проверь сумму чаевых.';return;
+  }
+  if (dayTipPending && (dayTipPending.date!==selectedDayISO||dayTipPending.amount!==amount||dayTipPending.account!==account)) {
+    document.getElementById('day-status').textContent='Сначала проверь предыдущую попытку сохранения. Повтори её с той же суммой.';return;
+  }
+  if (!dayTipPending) {
+    dayTipOperation=crypto.randomUUID();
+    dayTipPending={action:'tip_add',amount,account,date:selectedDayISO,operation_id:dayTipOperation,
+                   mode:privateMoney.active?'device':'server'};
+  }
+  calendarEdit(dayTipPending);
+};
+
+function closeDay() {
+  selectedDayISO=null;
+  document.getElementById("day").classList.remove("on");
+}
+document.getElementById("day-close").onclick=closeDay;
+document.getElementById("day").addEventListener("click", function (e) {
+  if (e.target.id === "day") closeDay();
+});
+document.getElementById("day").addEventListener("keydown", function (e) {
+  if (e.key === "Escape") closeDay();
+});
+
+function loadMonth(year, month) {
+  const request=++monthRequest;
+  const grid = document.getElementById("cal-grid");
+  grid.classList.add("loading");
+  return fetch("/api/month", {
+    method: "POST", headers: { "Content-Type": "application/json" }, cache: "no-store",
+    signal: AbortSignal.timeout(20000),
+    body: JSON.stringify({ initData: tg ? tg.initData : "", year: year, month: month,
+      ...window.privateMoney.payload }),
+  })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(data=>{if(request===monthRequest)paintCalendar(window.PrivateFinance.view('/api/month',{year,month},data));})
+    .catch(function () {
+      if(request!==monthRequest)return;
+      const error=document.getElementById("cal-sum");
+      error.textContent = "Не получилось загрузить месяц. Попробуй ещё раз.";
+      error.classList.add('error');
+    })
+    .finally(function () { if(request===monthRequest)grid.classList.remove("loading"); });
+}
+
+function calStep(delta) {
+  if (calYear === null) return;
+  let y = calYear, m = calMonth + delta;
+  if (m < 1) { m = 12; y -= 1; }
+  if (m > 12) { m = 1; y += 1; }
+  loadMonth(y, m);
+}
+
+document.getElementById("cal-prev").onclick = function () { calStep(-1); };
+document.getElementById("cal-next").onclick = function () { calStep(1); };
+// ── загрузка статистики ──
+function applyStats(s) {
+  const lost=window.privateMoney.state.lost;
+  if (!lost) document.getElementById("err").style.display = "none";
+  document.getElementById('tips-dashboard').style.display=lost?'none':'';
+  document.getElementById('private-open').hidden=!lost;
+  document.getElementById('open-history').hidden=lost;
+  document.getElementById('cal-hint').textContent=lost
+    ? 'Нажми на день, чтобы добавить или исправить смену.'
+    : 'Нажми на день, чтобы добавить или исправить смену и чаевые.';
+  render(s);
+}
+let statsRequestSeq=0,statsAppliedSeq=0;
+function load() {
+  const requestSeq=++statsRequestSeq;
+  if (window.privateMoney.state.lost) {
+    const el=document.getElementById('err');el.style.display='block';
+    el.textContent=window.privateMoney.state.lostReason==='missing'
+      ? 'Личный журнал находится на другом устройстве. Открой его там или настрой новый телефон в «Суперконфиденциальности».'
+      : window.privateMoney.state.lostReason==='unsupported'
+        ? 'На этом устройстве безопасное хранилище Telegram недоступно. Обнови Telegram и открой журнал снова.'
+        : 'Не удалось прочитать личный журнал. Открой «Суперконфиденциальность» для подробностей.';
+  }
+  fetch("/api/stats?t=" + Date.now(), {
+    method: "POST", headers: { "Content-Type": "application/json" }, cache: "no-store", signal: AbortSignal.timeout(20000),
+    body: JSON.stringify({ initData: tg ? tg.initData : "", ...window.privateMoney.payload }),
+  })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(stats=>window.PrivateFinance.view('/api/stats',{},stats))
+    .then(function (stats) {if(requestSeq>statsAppliedSeq){statsAppliedSeq=requestSeq;applyStats(stats);if(requestSeq>1)window.dispatchEvent(new Event('earnings-updated'));}})
+    .catch(function (e) {
+      if(requestSeq!==statsRequestSeq)return;
+      if (!/^HTTP /.test(e.message)) window.uxEvent?.("cabinet_load_error", "earnings", e.name === "TimeoutError" ? "timeout" : e.name === "SyntaxError" ? "invalid" : "network");
+      const el = document.getElementById("err");
+      el.style.display = "block";
+      el.textContent = "Не получилось загрузить данные. Открой бота и зайди в приложение ещё раз.";
+      document.getElementById("head").textContent = "Чаевые";
+    });
+}
+
+// ── панель трат за смену ──
+const SPEND_CATS = ["Мойка", "Бар", "Еда", "Такси", "Своя"];
+let spendCat = null;
+
+function buildChips() {
+  const box = document.getElementById("spend-chips");
+  box.innerHTML = "";
+  SPEND_CATS.forEach(function (c) {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.textContent = c === "Своя" ? "+ Своя" : c;
+    b.onclick = function () {
+      spendCat = c;
+      [...box.children].forEach(function (x) { x.classList.remove("sel"); });
+      b.classList.add("sel");
+      document.getElementById("spend-inputs").classList.add("on");
+      const name = document.getElementById("spend-name");
+      name.style.display = c === "Своя" ? "block" : "none";
+      document.getElementById("spend-note").textContent = "";
+      (c === "Своя" ? name : document.getElementById("spend-amount")).focus();
+    };
+    box.appendChild(b);
+  });
+}
+let spendDay=null;
+function openSpend(event) {
+  if(spendPending){document.getElementById('spend').classList.add('on');return;}
+  spendDay=event?.detail?.date || lastStats?.operational_today || new Date().toISOString().slice(0,10);
+  spendCat = null;
+  buildChips();
+  document.getElementById("spend-inputs").classList.remove("on");
+  document.getElementById("spend-amount").value = "";
+  document.getElementById("spend-name").value = "";
+  document.getElementById("spend-note").textContent = "";
+  document.getElementById("spend-sub").textContent = "Запись за " +
+    new Date(spendDay + "T12:00:00").toLocaleDateString("ru-RU",{day:"numeric",month:"long"}) + ".";
+  document.getElementById("spend").classList.add("on");
+}
+let spendPending=null,spendBusy=false;
+function lockSpend(){
+  document.querySelectorAll('#spend input,#spend-chips button').forEach(el=>el.disabled=spendBusy||!!spendPending);
+  document.getElementById('spend-submit').disabled=spendBusy;
+}
+async function submitSpend() {
+  if(spendBusy)return;
+  if(!spendPending){
+    const amount=Number(document.getElementById('spend-amount').value.replace(',','.'));
+    if(!spendCat||!Number.isFinite(amount)||amount<=0||amount>10000000||Math.abs(Math.round(amount*100)-amount*100)>1e-8){document.getElementById('spend-note').textContent='Выбери категорию и введи сумму.';return;}
+    const category=spendCat==='Своя'?(document.getElementById('spend-name').value.trim()||'Прочее'):spendCat;
+    const operation_id=crypto.randomUUID();
+    const historical=spendDay!==(lastStats?.operational_today||spendDay);
+    spendPending={operation_id,category,amount,date:spendDay,mode:privateMoney.active?'device':'server',
+                  source_key:(historical?'calendar-expense:':'miniapp-expense:')+operation_id,historical};
+  }
+  spendBusy=true;lockSpend();document.getElementById('spend-note').textContent='Записываю…';
+  try{
+    if (window.privateMoney.active) {
+      const source=spendPending.source_key;
+      const added=await privateMoney.add({id:'local:'+spendPending.operation_id,source_key:source,kind:'expense',account:'cash',
+        signed_amount:-spendPending.amount,category:spendPending.category,note:'трата из миниаппа',
+        work_date:spendPending.date,created_at:new Date().toISOString()},spendPending.mode==='server');
+      document.getElementById('spend-note').textContent=added?'Расход '+
+        spendPending.amount.toLocaleString('ru-RU',{maximumFractionDigits:2})+' ₽ сохранён на этом устройстве.':'Это действие уже обработано. Новую запись не добавлял.';
+      spendPending=null;document.getElementById('spend-amount').value='';document.getElementById('spend-name').value='';
+      document.getElementById('spend-submit').textContent='Внести';load();if(calYear)loadMonth(calYear,calMonth);
+      return;
+    }
+    const historical=spendPending.historical;
+    const r=await fetch(historical?'/api/calendar_edit':'/api/shift_spend',{method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',signal:AbortSignal.timeout(20000),body:JSON.stringify({...spendPending,...(historical?{action:'expense_add',operation_id:spendPending.operation_id}:{}),initData:tg?.initData||''})});
+    const data=await r.json();
+    // Любой отказ сервера (4xx) значит «не записано»: поля снова доступны. Повтор только при неизвестном исходе (5xx, сеть).
+    if(!r.ok){if(r.status>=400&&r.status<500)spendPending=null;throw new Error(data.error||'Не получил подтверждение. Повтори — дубля не будет.');}
+    load();
+    document.getElementById('spend-note').textContent='Расход '+
+      spendPending.amount.toLocaleString('ru-RU',{maximumFractionDigits:2})+' ₽ записан. Обновляю итог…';
+    spendPending=null;document.getElementById('spend-amount').value='';document.getElementById('spend-name').value='';
+    document.getElementById('spend-submit').textContent='Внести';window.dispatchEvent(new Event('earnings-updated'));
+  }catch(e){document.getElementById('spend-note').textContent=e.name==='TimeoutError'?'Ответ задерживается. Повтори — дубля не будет.':e.message;document.getElementById('spend-submit').textContent=spendPending?'Повторить':'Внести';}
+  finally{spendBusy=false;lockSpend();}
+}
+
+document.addEventListener('tips-open-spend',openSpend);
+document.addEventListener('tips-money-changed',function () { load(); if(calYear)loadMonth(calYear,calMonth); });
+document.getElementById("spend-submit").onclick = submitSpend;
+document.getElementById("spend-amount").addEventListener("keydown", function (e) { if (e.key === "Enter") submitSpend(); });
+document.getElementById("spend-close").onclick = function () { document.getElementById("spend").classList.remove("on"); };
+document.getElementById("spend").addEventListener("click", function (e) {
+  if (e.target.id === "spend") this.classList.remove("on");
+});
+
+let iphoneCalendarData=null,iphoneCalendarBusy=false;
+// Человек отключил ссылку: при следующем открытии приложения не создаём её заново (ревью 15.11.2026).
+// Включает её снова только нажатие «Подключить». Хранится лишь отметка, без ссылки и данных.
+const CALENDAR_REVOKED='calendar-link-revoked';
+function calendarRevoked(){try{return localStorage.getItem(CALENDAR_REVOKED)==='1';}catch(e){return false;}}
+function markCalendarRevoked(on){try{on?localStorage.setItem(CALENDAR_REVOKED,'1'):localStorage.removeItem(CALENDAR_REVOKED);}catch(e){}}
+function usesAppleCalendar(){
+  return tg?.platform==='ios'||/iPhone|iPad|iPod/.test(navigator.userAgent||'')
+    ||(/Macintosh/.test(navigator.userAgent||'')&&navigator.maxTouchPoints>1);
+}
+async function iphoneCalendarRequest(action){
+  const r=await fetch('/api/iphone_calendar',{method:'POST',headers:{'Content-Type':'application/json'},
+    cache:'no-store',signal:AbortSignal.timeout(20000),
+    body:JSON.stringify({initData:tg?.initData||'',action})});
+  const data=await r.json();
+  if(!r.ok)throw new Error(data.error||'Не получилось подключить календарь. Попробуй ещё раз.');
+  return data;
+}
+function paintIphoneCalendar(data){
+  iphoneCalendarData=data;
+  const box=document.getElementById('iphone-calendar');
+  box.hidden=!data?.available;
+  if(!data?.available)return;
+  document.getElementById('iphone-calendar-toggle').textContent=usesAppleCalendar()
+    ? 'Подключить iPhone ›'
+    : 'Подключить Google Календарь ›';
+  document.getElementById('iphone-calendar-help').hidden=!data.enabled;
+  document.getElementById('iphone-calendar-link').value=data.feed_url||'';
+  iphoneCalendarStatus('');
+  if(!data.enabled){document.getElementById('iphone-calendar-help').hidden=true;document.getElementById('iphone-calendar-help').open=false;}
+}
+function iphoneCalendarStatus(message){
+  const status=document.getElementById('iphone-calendar-status');
+  status.textContent=message;status.hidden=!message;
+}
+function openIphoneCalendar(){
+  const url=usesAppleCalendar()?iphoneCalendarData?.subscribe_url
+    :(iphoneCalendarData?.google_subscribe_url||iphoneCalendarData?.setup_url);
+  document.getElementById('iphone-calendar-help').hidden=false;
+  if(!url)throw new Error('Не получилось открыть календарь. Открой инструкцию ниже.');
+  if(tg?.openLink)tg.openLink(url,{try_instant_view:false});
+  else window.location.assign(url);
+}
+async function iphoneCalendarRefresh(){
+  if(iphoneCalendarBusy)return;
+  iphoneCalendarBusy=true;
+  const button=document.getElementById('iphone-calendar-toggle');button.disabled=true;
+  try{
+    // Prepare only our read-only URL. The calendar provider still asks for consent.
+    // openLink must run within one second of the tap, without an API round trip.
+    paintIphoneCalendar(await iphoneCalendarRequest(calendarRevoked()?'status':'create'));
+  }
+  catch(e){document.getElementById('iphone-calendar').hidden=true;}
+  finally{iphoneCalendarBusy=false;button.disabled=false;}
+}
+document.getElementById('iphone-calendar-toggle').onclick=async function(){
+  if(iphoneCalendarBusy)return;
+  if(iphoneCalendarData?.enabled){
+    try{openIphoneCalendar();}catch(e){iphoneCalendarStatus(e.message);}
+    return;
+  }
+  iphoneCalendarBusy=true;
+  this.disabled=true;iphoneCalendarStatus('Подготавливаю календарь…');
+  try{paintIphoneCalendar(await iphoneCalendarRequest('create'));markCalendarRevoked(false);
+    // After explicit revocation, a fresh tap is needed to keep
+    // Telegram's browser handoff within the allowed user-interaction window.
+    iphoneCalendarStatus('Ссылка готова. Нажми «Подключить iPhone», чтобы добавить подписку.');
+    if(!usesAppleCalendar())iphoneCalendarStatus('Ссылка готова. Нажми «Подключить Google Календарь», чтобы добавить подписку.');}
+  catch(e){iphoneCalendarStatus(e.message);}
+  finally{iphoneCalendarBusy=false;this.disabled=false;}
+};
+document.getElementById('iphone-calendar-copy').onclick=async function(){
+  const url=iphoneCalendarData?.feed_url;if(!url)return;
+  const input=document.getElementById('iphone-calendar-link');
+  try{await navigator.clipboard.writeText(url);}
+  catch(e){input.focus();input.select();if(!document.execCommand('copy')){
+    iphoneCalendarStatus('Выдели и скопируй ссылку вручную.');return;}}
+  iphoneCalendarStatus('Ссылка скопирована.');
+};
+document.getElementById('iphone-calendar-guide').onclick=function(){
+  const url=iphoneCalendarData?.setup_url;
+  if(url&&tg?.openLink)tg.openLink(url);
+  else if(url)window.open(url,'_blank','noopener');
+};
+document.getElementById('iphone-calendar-rotate').onclick=async function(){
+  if(iphoneCalendarBusy||!confirm('Старая ссылка перестанет работать. После замены добавь новую подписку в календарь. Заменить?'))return;
+  iphoneCalendarBusy=true;
+  try{paintIphoneCalendar(await iphoneCalendarRequest('rotate'));
+    iphoneCalendarStatus('Новая ссылка готова. Старую подписку удали в календаре.');}
+  catch(e){iphoneCalendarStatus(e.message);}
+  finally{iphoneCalendarBusy=false;}
+};
+document.getElementById('iphone-calendar-revoke').onclick=async function(){
+  if(iphoneCalendarBusy||!confirm('Отключить ссылку? Удали подписку и в календаре телефона: сохранённые там события могут исчезнуть не сразу.'))return;
+  iphoneCalendarBusy=true;
+  try{paintIphoneCalendar(await iphoneCalendarRequest('revoke'));markCalendarRevoked(true);
+    iphoneCalendarStatus('Ссылка отключена.');}
+  catch(e){iphoneCalendarStatus(e.message);}
+  finally{iphoneCalendarBusy=false;}
+};
+// ── история и правки ──
+let histEntries = [];
+
+function accLabel(a) { return a === "cash" ? "Наличные" : "Карта"; }
+function fmtDT(iso) {
+  return new Date(iso).toLocaleString("ru-RU", {
+    timeZone: "Europe/Moscow", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
+  }).replace(",", "");
+}
+
+function renderHistory() {
+  const list = document.getElementById("hist-list");
+  list.innerHTML = "";
+  if (!histEntries.length) { list.innerHTML = '<p class="hist-empty">Пока пусто.</p>'; return; }
+  histEntries.forEach(function (e) {
+    const amt = Math.abs(e.signed_amount);
+    const income = e.kind === "income" || e.kind === "accrual";
+    const accrual = e.kind === "accrual";
+    const item = document.createElement("div");
+    item.className = "hist-item";
+    item.innerHTML =
+      '<div class="hist-row">' +
+        '<div><div class="hist-cat">' + esc(e.category) + '</div>' +
+        '<div class="hist-meta">' + fmtDT(e.created_at) +
+          ' · <span class="txt">' + (accrual ? 'Начисление к зарплате' : accLabel(e.account)) + '</span></div></div>' +
+        '<div class="hist-amt">' + (accrual ? '' : income ? "+" : "−") + rub(amt) + ' ₽</div>' +
+      '</div>' +
+      '<div class="hist-edit">' +
+        '<div class="hist-edit-row">' +
+          '<input type="number" inputmode="decimal" step="0.01" class="hist-amt-input" value="' + amt + '">' +
+          (accrual ? '' : '<div class="acc-toggle">' +
+            '<button class="acc-btn" data-acc="cash">Нал</button>' +
+            '<button class="acc-btn" data-acc="card">Карта</button>' +
+          '</div>') +
+        '</div>' +
+        '<div class="hist-actions">' +
+          '<button class="hist-save">Сохранить</button>' +
+          '<button class="hist-del">Удалить</button>' +
+        '</div>' +
+      '</div>';
+
+    item.querySelector(".hist-row").onclick = function () {
+      const wasOpen = item.classList.contains("open");
+      [].forEach.call(list.children, function (c) { c.classList.remove("open"); });
+      if (!wasOpen) item.classList.add("open");
+    };
+
+    let selAcc = e.account;
+    const accBtns = item.querySelectorAll(".acc-btn");
+    function paintAcc() { [].forEach.call(accBtns, function (b) { b.classList.toggle("sel", b.dataset.acc === selAcc); }); }
+    paintAcc();
+    [].forEach.call(accBtns, function (b) { b.onclick = function () { selAcc = b.dataset.acc; paintAcc(); }; });
+
+    item.querySelector(".hist-save").onclick = function () {
+      const input = item.querySelector(".hist-amt-input");
+      const newAmt = Number(input.value);
+      if (!input.value.trim() || !Number.isFinite(newAmt) || newAmt <= 0 ||
+          newAmt > 10000000 || Math.abs(Math.round(newAmt * 100) - newAmt * 100) > 1e-8) {
+        document.getElementById("hist-status").textContent = "Проверь сумму: не больше двух знаков после запятой.";
+        input.focus();
+        return;
+      }
+      const tasks = [];
+      if (newAmt > 0 && newAmt !== amt) tasks.push({ action: "amount", amount: newAmt });
+      if (selAcc !== e.account) tasks.push({ action: "account", account: selAcc });
+      if (!tasks.length) { item.classList.remove("open"); return; }
+      chainEdits(e.id, tasks);
+    };
+    // Второе нажатие, пока первое ещё в пути, не уходит: иначе сервер отвечал «не найдено» на уже удалённую запись.
+    item.querySelector(".hist-del").onclick = function () {
+      if (this.disabled) return;
+      const button = this; button.disabled = true;
+      editEntry(e.id, { action: "delete" }).finally(function () { button.disabled = false; });
+    };
+
+    list.appendChild(item);
+  });
+}
+
+function editEntry(id, payload, silent) {
+  if (window.privateMoney.active) {
+    const entry=privateMoney.entries.find(e=>String(e.id)===String(id));
+    if (!entry) return Promise.resolve(null);
+    const task=payload.action==='delete' ? privateMoney.remove(id)
+      : privateMoney.edit(id,payload.action==='account' ? {account:payload.account}
+        : {signed_amount:(entry.kind==='adjustment'?(Number(entry.signed_amount)<0?-1:1):(entry.kind==='income'||entry.kind==='accrual'?1:-1))*Number(payload.amount)});
+    return task.then(function () {
+      const response={saved:true,stats:null,entries:null};
+      if (!silent) {histEntries=privateMoney.entries.slice(-30).reverse();renderHistory();load();if(calYear)loadMonth(calYear,calMonth);}
+      return response;
+    }).catch(function (e) {document.getElementById('hist-status').textContent=e.message;return null;});
+  }
+  return fetch("/api/entry_edit", {
+    method: "POST", headers: { "Content-Type": "application/json" }, cache: "no-store", signal: AbortSignal.timeout(20000),
+    body: JSON.stringify(Object.assign({ initData: tg ? tg.initData : "", entry_id: id }, payload)),
+  })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function (resp) {
+      if (!silent) applyEditResponse(resp);
+      return resp;
+    })
+    .catch(function (err) {
+      document.getElementById("hist-status").textContent =
+        "Не получилось подтвердить изменение. Обновляю историю — проверь запись перед повтором.";
+      openHistory(true);
+      load();
+      return null;
+    });
+}
+
+function applyEditResponse(resp) {
+  if (window.privateMoney.active) {
+    histEntries=privateMoney.entries.slice(-30).reverse();renderHistory();load();if(calYear)loadMonth(calYear,calMonth);
+    document.getElementById('hist-status').textContent='Сохранено на устройстве.';
+    return;
+  }
+  if (resp.stats && resp.entries) {
+    histEntries = resp.entries;
+    applyStats(resp.stats);
+    renderHistory();
+    document.getElementById("hist-status").textContent = "Сохранено.";
+  } else {
+    document.getElementById("hist-status").textContent =
+      "Сохранено. Обновляю историю и статистику.";
+    openHistory(true);
+    load();
+  }
+}
+
+function chainEdits(id, tasks) {
+  let p = Promise.resolve(null);
+  tasks.forEach(function (t, index) {
+    p = p.then(function (previous) {
+      if (index > 0 && !previous) return null;
+      return editEntry(id, t, true);
+    });
+  });
+  p.then(function (resp) {
+    if (resp) applyEditResponse(resp);
+  });
+}
+
+function openHistory(preserveStatus) {
+  document.getElementById("history").classList.add("on");
+  window.scrollTo(0, 0);
+  if (preserveStatus !== true) document.getElementById("hist-status").textContent = "";
+  document.getElementById("hist-list").innerHTML = '<p class="hist-empty">Загружаю…</p>';
+  if (window.privateMoney.active) {
+    histEntries=privateMoney.entries.slice(-30).reverse();renderHistory();return;
+  }
+  fetch("/api/entries", {
+    method: "POST", headers: { "Content-Type": "application/json" }, cache: "no-store", signal: AbortSignal.timeout(20000),
+    body: JSON.stringify({ initData: tg ? tg.initData : "" }),
+  })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function (resp) { histEntries = resp.entries; renderHistory(); })
+    .catch(function (err) {
+      document.getElementById("hist-list").innerHTML =
+        '<p class="hist-empty">Не получилось загрузить историю. Попробуй ещё раз.</p>';
+    });
+}
+
+document.getElementById("open-history").onclick = openHistory;
+document.getElementById("hist-close").onclick = function () {
+  document.getElementById("history").classList.remove("on");
+};
+
+const privateModal=document.getElementById('private-modal');
+function privateButtonText() {
+  document.getElementById('private-open').textContent=privateMoney.state.active
+    ? (privateMoney.state.lost ? '🔒 Личный журнал недоступен' : '🔒 Чаевые на этом устройстве')
+    : '🔒 Суперконфиденциальность';
+}
+function openPrivacy() {
+  const state=privateMoney.state;
+  const action=document.getElementById('private-confirm');
+  const exit=document.getElementById('private-exit');
+  const restore=document.getElementById('private-restore');
+  document.getElementById('private-clear').hidden=!state.active || state.lost || !privateMoney.entries.length;
+  exit.hidden=true;
+  restore.hidden=true;
+  document.getElementById('private-status').textContent='';
+  if (!privateMoney.available()) {
+    document.getElementById('private-description').textContent='Для личного журнала нужен Telegram с поддержкой безопасного хранилища. Обнови приложение Telegram и открой журнал снова.';
+    action.hidden=true;
+  } else if (!state.active && state.exitArchivePending) {
+    document.getElementById('private-description').textContent='Обычный режим уже включён и записи сохранены в базе. Не получилось завершить сохранение архивной копии на телефоне. Повтори здесь.';
+    action.hidden=true;exit.hidden=false;exit.textContent='Завершить сохранение копии';
+  } else if (!state.active && state.exitConflict) {
+    document.getElementById('private-description').textContent='Не удалось подтвердить результат предыдущего переноса. Местный журнал сохранён. Обратись в поддержку, прежде чем снова менять режим.';
+    action.hidden=true;
+  } else if (!state.active && state.lostReason==='unreadable') {
+    document.getElementById('private-description').textContent='Прежний местный журнал не читается. Записи в базе сохранены; перенос остановлен, чтобы не стереть возможные данные на этом устройстве.';
+    action.hidden=true;
+  } else if (state.active && !state.lost) {
+    document.getElementById('private-description').textContent='Личный журнал хранится на этом устройстве. Бот сохраняет новые записи в зашифрованной копии на 14 дней, а приложение переносит их при открытии. Записи, созданные до этого обновления, в копию не попали. Суммы в копии нельзя прочитать без ключа телефона. При потере телефона данные не восстановятся.'+(state.archiveCount?' От прежних выходов сохранено архивных копий на этом телефоне: '+state.archiveCount+'.':'');
+    action.hidden=true;exit.hidden=false;exit.textContent='Вернуться к обычному режиму';
+  } else if (state.active && ['missing','pending'].includes(state.lostReason)) {
+    document.getElementById('private-description').textContent=state.lostReason==='pending'
+      ? 'Журнал на этом телефоне не найден. Если ключ сохранился, можно восстановить записи из зашифрованных копий за последние 14 дней. Более старые записи в копии не входят.'
+      : 'Этот телефон не содержит ключ прежнего журнала. Старые записи здесь восстановить нельзя.';
+    action.hidden=false;action.textContent='Начать на этом телефоне';
+    restore.hidden=state.lostReason==='pending';
+  } else if (state.active) {
+    document.getElementById('private-description').textContent=state.lostReason==='unsupported'
+      ? 'На этом устройстве безопасное хранилище Telegram недоступно. Обнови Telegram и открой журнал снова.'
+      : 'Не удалось прочитать местный журнал. Если ключ сохранился, можно восстановить только записи, чьи временные копии ещё не удалены. Исходный повреждённый файл будет сохранён отдельно.';
+    action.hidden=true;
+    restore.hidden=state.lostReason==='unreadable';
+  } else {
+    document.getElementById('private-description').textContent='Перенесу личные записи на этот телефон. После проверки исходные суммы в базе заменятся зашифрованными копиями на 14 дней. Бот будет сохранять новые записи сразу, а приложение перенесёт их на телефон при открытии. Без ключа этого телефона копии не прочитать; при потере телефона журнал не восстановится.'+(state.archiveCount?' Архивные копии прежних журналов остаются на телефоне и не участвуют в подсчётах: '+state.archiveCount+'.':'');
+    action.hidden=false;action.textContent='Перенести записи и включить';
+  }
+  privateModal.hidden=false;privateModal.style.display='flex';
+}
+document.getElementById('private-open').onclick=openPrivacy;
+document.addEventListener('tips-open-privacy',openPrivacy);
+document.getElementById('private-cancel').onclick=function () {privateModal.hidden=true;privateModal.style.display='none';};
+document.getElementById('private-clear').onclick=async function () {
+  if (!confirm('Удалить текущий личный журнал с телефона и все временные копии с сервера? Архивные копии прежних журналов останутся на телефоне.')) return;
+  const status=document.getElementById('private-status');
+  try {await privateMoney.clear();status.textContent='Текущий журнал и временные копии удалены. Архивные копии остались на телефоне.';this.hidden=true;load();if(calYear)loadMonth(calYear,calMonth);}
+  catch (error) {status.textContent=error.message;}
+};
+document.getElementById('private-confirm').onclick=async function () {
+  const status=document.getElementById('private-status');
+  this.disabled=true;status.textContent='Начинаю перенос…';
+  try {
+    if (privateMoney.state.active) await privateMoney.rotate();
+    else await privateMoney.activate(message=>{status.textContent=message;});
+    status.textContent='Готово. Личные записи теперь на этом устройстве.';
+    privateButtonText();load();if(calYear)loadMonth(calYear,calMonth);
+    this.hidden=true;
+  } catch (error) {status.textContent=error.message||'Не удалось завершить перенос. Открой приложение снова и повтори.';}
+  finally {this.disabled=false;}
+};
+document.getElementById('private-exit').onclick=async function () {
+  const status=document.getElementById('private-status');
+  if (privateMoney.state.exitArchivePending) {
+    this.disabled=true;status.textContent='Сохраняю архивную копию на телефоне…';
+    try {await privateMoney.finishExitArchive();status.textContent='Готово. Архивная копия осталась на этом телефоне.';this.hidden=true;
+      document.getElementById('private-sync-status').textContent='';}
+    catch (error) {status.textContent=error.message;}
+    finally {this.disabled=false;}
+    return;
+  }
+  if (!confirm('Перенести все личные записи в обычный журнал? Суммы будут храниться в базе и станут доступны владельцу серверного доступа. Зашифрованная копия прежнего журнала останется на этом телефоне; временные серверные копии будут удалены.')) return;
+  this.disabled=true;status.textContent='Переношу записи в обычный журнал…';
+  try {
+    const result=await privateMoney.deactivate();
+    status.textContent=result.archivePending
+      ? 'Записи перенесены в базу, обычный режим включён. Архивная копия ещё не подтверждена на телефоне — нажми «Завершить сохранение копии».'
+      : 'Готово. Перенесено записей: '+result.count+'. Зашифрованная копия осталась на этом телефоне.';
+    if (result.archivePending) this.textContent='Завершить сохранение копии';
+    else this.hidden=true;
+    document.getElementById('private-clear').hidden=true;
+    document.getElementById('private-restore').hidden=true;
+    privateButtonText();window.dispatchEvent(new Event('private-money-ready'));
+    load();if(calYear)loadMonth(calYear,calMonth);
+  } catch (error) {status.textContent=error.message;}
+  finally {this.disabled=false;}
+};
+document.getElementById('private-restore').onclick=async function () {
+  if (!confirm('Восстановить записи из копий за последние 14 дней? Более старых записей там нет. Удалённые или исправленные на телефоне записи могут вернуться в прежнем виде.')) return;
+  const status=document.getElementById('private-status');
+  this.disabled=true;status.textContent='Восстанавливаю записи на этом телефоне…';
+  try {const count=await privateMoney.restoreRecent();status.textContent='Восстановлено записей: '+count+'.';this.hidden=true;
+    document.getElementById('private-confirm').hidden=true;privateButtonText();load();if(calYear)loadMonth(calYear,calMonth);}
+  catch (error) {status.textContent=error.message;}
+  finally {this.disabled=false;}
+};
+
+async function syncPrivateRecords(refresh=true) {
+  if (!privateMoney.active) return 0;
+  const status=document.getElementById('private-sync-status');
+  try {const count=await privateMoney.sync();
+    status.textContent=count?'Личный журнал обновлён.':'';
+    if(count&&refresh)window.dispatchEvent(new Event('private-money-ready'));
+    return count;
+  } catch (error) {
+    status.textContent='Не получилось обновить личный журнал. Зашифрованные копии пока сохранены; попробуй открыть приложение снова. '+error.message;
+    const notice=document.getElementById('err');
+    notice.style.display='block';notice.textContent='Не получилось обновить записи. Попробуй открыть приложение снова.';
+    return null;
+  }
+}
+
+// Первый запуск мог не дойти до сервера (сеть, сон телефона): повторяем его по таймеру и при возврате
+// в приложение, а не оставляем вкладку пустой до перезапуска (ревью 15.11.2026).
+let appStarting=false;
+async function startApp() {
+  if (appStarting) return;
+  appStarting=true;
+  try {
+    await privateMoney.init();
+    document.getElementById('err').style.display='none';
+    if (privateMoney.state.exitArchivePending)
+      document.getElementById('private-sync-status').textContent='Обычный режим включён. Открой «Суперконфиденциальность», чтобы завершить сохранение архивной копии на телефоне.';
+    if (privateMoney.state.exitConflict)
+      document.getElementById('private-sync-status').textContent='Не удалось подтвердить прежний перенос. Местный журнал сохранён; открой «Суперконфиденциальность».';
+    const imported=await privateMoney.importUrl();
+    if (imported) {
+      document.getElementById('private-status').textContent=imported;
+      privateModal.hidden=false;privateModal.style.display='flex';
+      document.getElementById('private-confirm').hidden=true;
+    }
+    if (await syncPrivateRecords(false)===null) return;
+    window.dispatchEvent(new Event('private-money-ready'));
+    privateButtonText();
+    load();iphoneCalendarRefresh();
+  } catch (error) {
+    // Сеть или таймаут дают английский текст браузера («Failed to fetch»): показываем понятный.
+    const message=error.name==='TypeError'||error.name==='TimeoutError'?'Не получилось загрузить данные. Попробуй ещё раз.':error.message;
+    if (privateMoney.state.ready) document.getElementById('private-sync-status').textContent=message;
+    else {const el=document.getElementById('err');el.style.display='block';el.textContent=message;}
+    return;
+  } finally { appStarting=false; }
+}
+startApp();
+setInterval(async function () {
+  // Без подтверждённого режима записей нельзя показывать месяц: у приватного журнала он выглядел бы пустым.
+  if(!privateMoney.state.ready){startApp();return;}
+  if(await syncPrivateRecords()!==null)load();
+}, 60000);
+document.addEventListener("visibilitychange", async function () {
+  if (document.hidden) return;
+  if (!privateMoney.state.ready) { startApp(); return; }
+  if (await syncPrivateRecords(false)===null) return;
+  window.dispatchEvent(new Event('private-money-ready'));
+  load();iphoneCalendarRefresh();
+});
+</script>
+<script>
+  // Одна вкладка видна, остальные скрыты: общий переключатель для всех разделов.
+  window.selectTab=key=>{
+    document.querySelectorAll('.app-tabs [role=tab]').forEach(t=>t.setAttribute('aria-selected',String(t.id==='tab-'+key)));
+    document.querySelectorAll('body>[role=tabpanel]').forEach(p=>{p.hidden=p.id!==key+'-panel';});
+  };
+  // Вкладки: плашка из светлого стекла переезжает под выбранную вкладку (приём «animated tabs» с 21st.dev, перенесён без React).
+  // Поверх лежит копия надписей на стекле, обрезанная по выбранной вкладке; при переключении
+  // обрезка плавно едет, и текст меняет цвет прямо по ходу. Следит за aria-selected и hidden, сам ничего не переключает.
+  (function(nav){
+    if(!nav)return;
+    const glass=document.createElement('span');glass.className='nimbus-glass';glass.setAttribute('aria-hidden','true');
+    const over=document.createElement('div');over.className='clip-tabs';over.setAttribute('aria-hidden','true');
+    nav.prepend(glass);nav.append(over);
+    const tabs=[...nav.querySelectorAll('[role=tab]')];
+    const copies=tabs.map(t=>{const c=document.createElement('span');c.className='nimbus-item';c.textContent=t.textContent;over.append(c);return c;});
+    let ready=false;
+    function update(){
+      tabs.forEach((t,i)=>{if(copies[i].hidden!==t.hidden)copies[i].hidden=t.hidden;});
+      const a=tabs.find(t=>!t.hidden&&t.getAttribute('aria-selected')==='true');
+      if(!a||!nav.clientWidth){over.style.clipPath='inset(50%)';return;}
+      const top=a.offsetTop,left=a.offsetLeft,right=nav.clientWidth-left-a.offsetWidth,bottom=nav.clientHeight-top-a.offsetHeight;
+      if(!ready)over.style.transition='none';
+      over.style.clipPath=`inset(${top}px ${right}px ${bottom}px ${left}px round 999px)`;
+      if(!ready){over.offsetWidth;over.style.transition='';ready=true;}
+    }
+    // Следим только за самими вкладками: копии надписей тоже внутри nav, и слежка за всем nav зациклилась бы.
+    const mo=new MutationObserver(update);tabs.forEach(t=>mo.observe(t,{attributes:true,attributeFilter:['aria-selected','hidden']}));
+    if(window.ResizeObserver)new ResizeObserver(update).observe(nav);
+    document.fonts&&document.fonts.ready.then(update);
+    update();
+  })(document.querySelector('.app-tabs'));
+</script>
+<script src="tips.js"></script>
+<script src="schedule-grid.js"></script>
+<script src="schedule.js"></script>
+</body>
+</html>
