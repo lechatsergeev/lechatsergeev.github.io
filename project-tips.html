@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Onest:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="demos/schedule/schedule.css?v=25">
-<link rel="stylesheet" href="assets/site.css?v=30">
+<link rel="stylesheet" href="assets/site.css?v=32">
 </head>
 <body>
 <div class="wrap">
@@ -140,14 +140,23 @@
     </section>
     <section>
       <h2>Тренинги</h2>
-      <p>На тренинги ходят в свой выходной. Бот сверяет таблицу тренингов с графиком и зовёт тех, кто свободен.</p>
+      <p>Тренинги назначают на месяц вперёд в общей таблице, а ходят на них в свой выходной.</p>
+      <div class="cal-sum reveal">
+        <div><b>Было · 4 шага</b><span>таблица тренингов → свой график → сверить дни → вписать себя в таблицу</span></div>
+        <div><b>Стало · 1 кнопка</b><span>приглашение на день, когда выходной → «Записаться»</span></div>
+      </div>
       <div class="demo reveal" data-demo="train">
         <div class="demo-box bot-skin">
-          <div class="chat">
-            <div class="chat-log" aria-live="polite"></div>
+          <div class="demo-top">
+            <div class="seg" role="group" aria-label="Как записаться">
+              <button type="button" data-value="old" aria-pressed="true">Было</button>
+              <button type="button" data-value="new" aria-pressed="false">Стало</button>
+            </div>
           </div>
+          <div class="demo-out"></div>
+          <div class="chat"><div class="chat-log" aria-live="polite"></div></div>
         </div>
-        <p class="demo-note">Текст приглашения написал менеджер.</p>
+        <p class="demo-note">Таблица и тренинги выдуманные. Текст приглашения написал менеджер.</p>
       </div>
     </section>
     <section>
@@ -383,7 +392,7 @@
 
 </div>
 <script src="demos/schedule/schedule-grid.js?v=26"></script>
-<script src="assets/demos.js?v=31"></script>
+<script src="assets/demos.js?v=34"></script>
 <script src="analytics.js?v=24"></script>
 </body>
 </html>

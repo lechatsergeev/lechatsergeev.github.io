@@ -705,20 +705,38 @@
     draw();
   }
 
-  /* ---------- Демо: приглашение на тренинг и отчёт менеджеру (тексты из trainings.py) ---------- */
+  /* ---------- Демо: тренинги — было (таблица + график, сверять самой) и стало (приглашение, тексты из trainings.py) ---------- */
   function trainDemo(root) {
-    var log = root.querySelector(".chat-log");
+    var out = root.querySelector(".demo-out"), chat = root.querySelector(".chat"), log = root.querySelector(".chat-log");
     var SESSION = "ср, 25 ноября, 12:00–14:30 — Вина Италии";
-    function start() {
+    var SHEET = [["Вина Италии", "Марина", "25.11 с 12:00 до 14:30", ["Аня", "", ""]],
+                 ["Сервис и этикет", "Олег", "27.11 с 11:00 до 13:00", ["", "", ""]]];
+    var WEEK = [["пн", 23, ""], ["вт", 24, "11"], ["ср", 25, ""], ["чт", 26, "12"], ["пт", 27, "11"], ["сб", 28, ""], ["вс", 29, "12"]];
+    function before() {
+      var h = '<div class="tr-sheet"><div class="tr-cap">Таблица тренингов · ноябрь</div>';
+      SHEET.forEach(function (r) {
+        h += '<div class="tr-row"><div><b>' + r[0] + "</b><small>ведёт " + r[1] + "</small></div><div class=\"tr-when\">" + r[2] + "</div><div class=\"tr-list\">" +
+          r[3].map(function (n, i) { return "<span>" + (i + 1) + ". " + (n || "") + "</span>"; }).join("") + "</div></div>";
+      });
+      h += '</div><div class="tr-week"><div class="tr-cap">График Вики</div><div class="tr-days">';
+      WEEK.forEach(function (d) {
+        var mark = d[1] === 25 ? " ok" : d[1] === 27 ? " no" : "";
+        h += '<div class="rest-d' + (d[2] ? " on" : "") + mark + '"><small>' + d[0] + "</small><b>" + d[1] + "</b><i>" + (d[2] || "вых") + "</i></div>";
+      });
+      out.innerHTML = h + '</div></div><p class="tr-note">25-го выходной — можно. 27-го смена — нельзя. Дальше Вика возвращается в таблицу и вписывает себя. Кто мог прийти, но не записался, менеджер не знает.</p>';
+    }
+    function after() {
       log.innerHTML = '<div class="msg hint">Вике, у которой 25-го выходной</div>';
       botSay(log, "Новости: в твой выходной тренинг. Ты должен идти ☠️\n" + SESSION + ", ведёт Марина", [["Записаться: 25.11 Вина Италии", function (b) {
         b.disabled = true;
-        var t = el("div", "msg hint", "Таблица открылась на свободной строке занятия. Вика вписала себя."); log.appendChild(t);
-        setTimeout(function () { var h = el("div", "msg hint", "24 ноября, 18:00 · менеджеру"); log.appendChild(h);
-          botSay(log, "Тренинг завтра: " + SESSION + ".\nЗаписались: Вика.\nБыл выходной, но не записались: Боря, Ева.", [["Сначала", function () { start(); }]], 200); }, 700);
+        log.appendChild(el("div", "msg hint", "Таблица открылась на свободной строке занятия. Вика вписала себя."));
+        setTimeout(function () { log.appendChild(el("div", "msg hint", "24 ноября, 18:00 · менеджеру"));
+          botSay(log, "Тренинг завтра: " + SESSION + ".\nЗаписались: Вика.\nБыл выходной, но не записались: Боря, Ева.", [["Сначала", function () { after(); }]], 200); }, 700);
       }]], 0);
     }
-    start();
+    // У .chat свой display: flex, поэтому прячем стилем, а не атрибутом hidden.
+    segment(root, function (v) { var b = v === "old"; out.style.display = b ? "" : "none"; chat.style.display = b ? "none" : ""; if (b) before(); else after(); });
+    before(); chat.style.display = "none";
   }
 
   /* ---------- Демо: подсказки по меню (правила поиска из menu_store.py упрощены, блюда выдуманные) ---------- */
